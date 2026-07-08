@@ -1,6 +1,14 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+function getResendClient() {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error(
+      "RESEND_API_KEY isn't set — email invites are unused by default; set it in .env.local if you want to re-enable them."
+    );
+  }
+  return new Resend(process.env.RESEND_API_KEY);
+}
+
 const FROM = "Tribe Works Behavioral Services <hello@tribeworksbehavioralservices.com>";
 
 export async function sendInvitationEmail({
@@ -12,6 +20,7 @@ export async function sendInvitationEmail({
   firstName: string;
   token: string;
 }) {
+  const resend = getResendClient();
   const link = `${process.env.NEXT_PUBLIC_SITE_URL}/accept-invite?token=${token}`;
 
   await resend.emails.send({

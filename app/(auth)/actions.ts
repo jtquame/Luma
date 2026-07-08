@@ -102,7 +102,8 @@ export async function acceptInvitation(
   });
 
   if (signUpError || !signUpData.user) {
-    return { error: "Couldn't create your account. Contact your therapist." };
+    console.error("joinWithCode signUp error:", signUpError);
+    return { error: "Couldn't create your account. Try again." };
   }
 
   const { error: acceptError } = await supabase.rpc("accept_invitation", {
@@ -178,6 +179,7 @@ export async function joinWithCode(input: JoinInput): Promise<ActionResult> {
   });
 
   if (signUpError || !signUpData.user) {
+    console.error("joinWithCode signUp error:", signUpError);
     return { error: "Couldn't create your account. Try again." };
   }
 
@@ -190,6 +192,7 @@ export async function joinWithCode(input: JoinInput): Promise<ActionResult> {
   });
 
   if (joinError) {
+    console.error("joinWithCode RPC error:", joinError);
     return { error: "Couldn't finish setting up your account. Contact your therapist." };
   }
 

@@ -75,9 +75,20 @@ create index responses_template_idx on public.responses (template_id, submitted_
 create index responses_client_idx on public.responses (client_id, submitted_at desc);
 
 -- For check-ins, prevent a client from submitting the same recurring
--- check-in twice on the same calendar day.
+-- check-in twice on the same calendar day. `submitted_at::date` on its own
+-- isn't allowed in an index because that cast depends on the session's
+-- timezone setting (not IMMUTABLE); this wrapper fixes the zone to UTC so
+-- Postgres can treat it as deterministic.
+create or replace function public.date_utc(ts timestamptz)
+returns date
+language sql
+immutable
+as $$
+  select (ts at time zone 'utc')::date;
+$$;
+
 create unique index responses_one_checkin_per_day
-  on public.responses (template_id, client_id, (submitted_at::date));
+  on public.responses (template_id, client_id, public.date_utc(submitted_at));
 
 -- ---------------------------------------------------------------------------
 -- ANSWERS — one row per question per response.
