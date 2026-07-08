@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  Luma — brand tokens sourced from Samara Lynch / Tribe Works Behavioral
+  Services (olive/moss green, warm ivory, antique gold, soft sage).
+  See /DESIGN.md for the full rationale.
+*/
+:root {
+  --bg: 39 52% 94%;              /* #F7F1E6 warm ivory */
+  --surface: 0 0% 100%;          /* #FFFFFF */
+  --ink: 60 10% 14%;             /* #26261F */
+  --ink-muted: 48 10% 39%;       /* #6E6A5A */
+  --primary: 72 35% 28%;         /* #57612F moss/olive */
+  --primary-hover: 73 37% 22%;   /* #454E24 */
+  --primary-foreground: 39 52% 96%;
+  --accent: 42 48% 47%;          /* #B08D3E antique gold */
+  --accent-foreground: 60 10% 14%;
+  --sage: 84 29% 70%;            /* #B7C99C */
+  --sage-foreground: 72 35% 20%;
+  --border: 44 33% 84%;          /* #E3DCC8 */
+  --danger: 11 45% 45%;          /* #A8523F */
+}
+
+.dark {
+  --bg: 80 12% 12%;              /* deep olive-charcoal, not pure black */
+  --surface: 78 12% 16%;
+  --ink: 42 30% 92%;
+  --ink-muted: 44 12% 68%;
+  --primary: 84 29% 62%;         /* lighter sage-moss so it reads on dark */
+  --primary-hover: 84 29% 70%;
+  --primary-foreground: 80 12% 12%;
+  --accent: 42 55% 62%;          /* brighter gold for dark-mode contrast */
+  --accent-foreground: 80 12% 12%;
+  --sage: 84 20% 30%;
+  --sage-foreground: 84 40% 85%;
+  --border: 78 10% 24%;
+  --danger: 11 50% 62%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-bg text-ink font-sans antialiased;
+  }
+  h1, h2, h3, h4 {
+    @apply font-display text-ink;
+  }
+  :focus-visible {
+    outline: 2px solid hsl(var(--accent));
+    outline-offset: 2px;
+  }
+}
+
+@layer utilities {
+  .eyebrow {
+    @apply font-mono text-xs uppercase tracking-[0.14em] text-ink-muted;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
