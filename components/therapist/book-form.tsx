@@ -7,6 +7,7 @@ import { bookSchema, BOOK_CATEGORIES } from "@/lib/validations/books";
 import { Card } from "@/components/ui/card";
 import { Input, Label, FieldError } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { ImageUploader } from "./image-uploader";
 import { X } from "lucide-react";
 
 export function BookForm({ onDone }: { onDone: () => void }) {
@@ -80,14 +81,12 @@ export function BookForm({ onDone }: { onDone: () => void }) {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-          <div>
-            <Label htmlFor="cover">Cover image URL</Label>
-            <Input
-              id="cover"
-              value={coverImageUrl}
-              onChange={(e) => setCoverImageUrl(e.target.value)}
-            />
-          </div>
+          <ImageUploader
+            label="Cover image"
+            value={coverImageUrl}
+            onChange={setCoverImageUrl}
+            folder="books"
+          />
           <div>
             <Label htmlFor="amazon">Amazon link</Label>
             <Input id="amazon" value={amazonUrl} onChange={(e) => setAmazonUrl(e.target.value)} />

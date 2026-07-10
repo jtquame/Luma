@@ -11,7 +11,7 @@ export default async function ClientSkillBuildingPage() {
   const { data: assignments } = await supabase
     .from("assignments")
     .select(
-      "id, title, instructions, reflection_prompt, reflection_max_length, status, reflection_response, created_at"
+      "id, title, instructions, reflection_prompt, reflection_max_length, status, reflection_response, attachment_url, attachment_name, attachment_type, created_at"
     )
     .eq("client_id", user!.id)
     .order("status", { ascending: true }) // assigned before completed

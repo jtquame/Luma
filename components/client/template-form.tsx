@@ -21,11 +21,13 @@ export function TemplateForm({
   title,
   description,
   questions,
+  headerExtra,
 }: {
   templateId: string;
   title: string;
   description: string | null;
   questions: Question[];
+  headerExtra?: React.ReactNode;
 }) {
   const router = useRouter();
   const [answers, setAnswers] = useState<Record<string, AnswerValue>>({});
@@ -72,7 +74,8 @@ export function TemplateForm({
   return (
     <Card>
       <h3 className="font-display text-lg mb-1">{title}</h3>
-      {description && <p className="text-sm text-ink-muted mb-5">{description}</p>}
+      {description && <p className="text-sm text-ink-muted mb-2">{description}</p>}
+      {headerExtra && <div className="mb-4">{headerExtra}</div>}
 
       <form onSubmit={handleSubmit} noValidate className="space-y-6">
         {questions.map((q) => (

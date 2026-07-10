@@ -29,6 +29,16 @@ export default async function ClientHomePage() {
     .eq("client_id", user!.id)
     .order("submitted_at", { ascending: false });
 
+  const { data: preferences } = await supabase
+    .from("client_template_preferences")
+    .select("template_id, frequency")
+    .eq("client_id", user!.id);
+
+  const preferenceByTemplate = new Map<string, CheckInFrequency>();
+  for (const p of preferences ?? []) {
+    preferenceByTemplate.set(p.template_id, p.frequency);
+  }
+
   const lastSubmittedByTemplate = new Map<string, string>();
   for (const r of lastResponses ?? []) {
     if (!lastSubmittedByTemplate.has(r.template_id)) {
@@ -38,7 +48,9 @@ export default async function ClientHomePage() {
 
   const pendingCount = (activeCheckIns ?? []).filter((t) => {
     const last = lastSubmittedByTemplate.get(t.id) ?? null;
-    return isCheckInDue(t.frequency as CheckInFrequency | null, last);
+    const effectiveFrequency =
+      preferenceByTemplate.get(t.id) ?? (t.frequency as CheckInFrequency | null) ?? "daily";
+    return isCheckInDue(effectiveFrequency, last);
   }).length;
 
   const { data: latestPost } = await supabase

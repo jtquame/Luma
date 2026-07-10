@@ -27,13 +27,13 @@ export function ClientNav() {
 
   return (
     <header className="border-b border-border bg-surface">
-      <div className="max-w-3xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
-        <Link href="/home" className="font-display text-lg text-ink">
+      <div className="max-w-6xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between gap-4">
+        <Link href="/home" className="font-display text-lg text-ink whitespace-nowrap shrink-0">
           Tribe Works
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden lg:flex items-center gap-5">
+        <nav className="hidden xl:flex items-center gap-4 shrink-0">
           {NAV.map(({ href, label }) => {
             const active = pathname === href;
             return (
@@ -50,7 +50,7 @@ export function ClientNav() {
             );
           })}
           <form action={logout}>
-            <button type="submit" className="text-sm text-ink-muted hover:text-ink">
+            <button type="submit" className="text-sm text-ink-muted hover:text-ink whitespace-nowrap">
               Sign out
             </button>
           </form>
@@ -60,14 +60,14 @@ export function ClientNav() {
         <button
           onClick={() => setOpen(true)}
           aria-label="Open menu"
-          className="lg:hidden text-ink-muted hover:text-ink p-1"
+          className="xl:hidden text-ink-muted hover:text-ink p-1"
         >
           <Menu size={22} />
         </button>
       </div>
 
       {open && (
-        <div className="lg:hidden fixed inset-0 z-40 flex">
+        <div className="xl:hidden fixed inset-0 z-40 flex">
           <div className="w-72 max-w-[80vw] bg-surface flex flex-col h-full ml-auto">
             <div className="flex items-center justify-between px-5 pt-4 pb-2">
               <p className="font-display text-lg text-ink">Tribe Works</p>

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { completeAssignment } from "@/app/(client)/skill-building-actions";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { FileText, Image as ImageIcon, Download } from "lucide-react";
 
 interface Assignment {
   id: string;
@@ -14,6 +15,9 @@ interface Assignment {
   reflection_max_length: number | null;
   status: string;
   reflection_response: string | null;
+  attachment_url?: string | null;
+  attachment_name?: string | null;
+  attachment_type?: string | null;
 }
 
 export function AssignmentCard({ assignment }: { assignment: Assignment }) {
@@ -48,6 +52,23 @@ export function AssignmentCard({ assignment }: { assignment: Assignment }) {
         )}
       </div>
       <p className="text-sm text-ink-muted mb-4">{assignment.instructions}</p>
+
+      {assignment.attachment_url && (
+        <a
+          href={assignment.attachment_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 rounded-lg border border-border bg-bg px-3.5 py-2.5 text-sm text-ink hover:border-primary/40 transition-colors mb-4 max-w-xs"
+        >
+          {assignment.attachment_type === "image" ? (
+            <ImageIcon size={16} className="text-ink-muted shrink-0" />
+          ) : (
+            <FileText size={16} className="text-ink-muted shrink-0" />
+          )}
+          <span className="truncate flex-1">{assignment.attachment_name ?? "Attachment"}</span>
+          <Download size={15} className="text-ink-muted shrink-0" />
+        </a>
+      )}
 
       {assignment.reflection_prompt && (
         <div className="mb-4">

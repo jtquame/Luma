@@ -7,6 +7,7 @@ import { assignmentSchema } from "@/lib/validations/assignments";
 import { Card } from "@/components/ui/card";
 import { Input, Label, FieldError } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { FileUploader, type UploadedFile } from "./file-uploader";
 import { Plus, Trash2, X } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
@@ -30,6 +31,7 @@ function AssignmentForm({ clients, onDone }: { clients: ClientOption[]; onDone: 
   const [instructions, setInstructions] = useState("");
   const [reflectionPrompt, setReflectionPrompt] = useState("");
   const [reflectionMaxLength, setReflectionMaxLength] = useState("300");
+  const [attachment, setAttachment] = useState<UploadedFile | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -42,6 +44,9 @@ function AssignmentForm({ clients, onDone }: { clients: ClientOption[]; onDone: 
       instructions,
       reflectionPrompt,
       reflectionMaxLength: reflectionPrompt ? Number(reflectionMaxLength) : undefined,
+      attachmentUrl: attachment?.url,
+      attachmentName: attachment?.name,
+      attachmentType: attachment?.type,
     });
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? "Check the form");
@@ -111,6 +116,12 @@ function AssignmentForm({ clients, onDone }: { clients: ClientOption[]; onDone: 
             placeholder="What should they do before your next session?"
           />
         </div>
+        <FileUploader
+          label="Attach a worksheet, doc, or photo (optional)"
+          value={attachment}
+          onChange={setAttachment}
+          folder="assignments"
+        />
         <div>
           <Label htmlFor="reflection">Reflection question (optional)</Label>
           <Input

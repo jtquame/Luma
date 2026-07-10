@@ -350,6 +350,9 @@ export interface Database {
           reflection_max_length: number | null;
           status: AssignmentStatus;
           reflection_response: string | null;
+          attachment_url: string | null;
+          attachment_name: string | null;
+          attachment_type: string | null;
           completed_at: string | null;
           created_by: string;
           created_at: string;
@@ -361,6 +364,9 @@ export interface Database {
           instructions: string;
           reflection_prompt?: string | null;
           reflection_max_length?: number | null;
+          attachment_url?: string | null;
+          attachment_name?: string | null;
+          attachment_type?: string | null;
           created_by: string;
         };
         Update: {
@@ -368,6 +374,20 @@ export interface Database {
           reflection_response?: string | null;
           completed_at?: string | null;
         };
+      };
+      client_template_preferences: {
+        Row: {
+          client_id: string;
+          template_id: string;
+          frequency: CheckInFrequency;
+          updated_at: string;
+        };
+        Insert: {
+          client_id: string;
+          template_id: string;
+          frequency: CheckInFrequency;
+        };
+        Update: { frequency: CheckInFrequency };
       };
       terms_content: {
         Row: { id: true; version: number; body: string; updated_at: string };

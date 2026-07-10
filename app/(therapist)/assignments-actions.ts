@@ -40,6 +40,9 @@ export async function createAssignment(input: AssignmentInput): Promise<ActionRe
     instructions: parsed.data.instructions,
     reflection_prompt: parsed.data.reflectionPrompt || null,
     reflection_max_length: parsed.data.reflectionMaxLength || null,
+    attachment_url: parsed.data.attachmentUrl || null,
+    attachment_name: parsed.data.attachmentName || null,
+    attachment_type: parsed.data.attachmentType || null,
     created_by: user.id,
   });
 

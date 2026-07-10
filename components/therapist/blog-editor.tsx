@@ -7,6 +7,7 @@ import { blogPostSchema } from "@/lib/validations/blog";
 import { Card } from "@/components/ui/card";
 import { Input, Label, FieldError } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { ImageUploader } from "./image-uploader";
 import { X } from "lucide-react";
 
 interface ExistingPost {
@@ -84,14 +85,12 @@ export function BlogEditor({
             placeholder="Anxiety, Relationships…"
           />
         </div>
-        <div>
-          <Label htmlFor="cover">Cover image URL (optional)</Label>
-          <Input
-            id="cover"
-            value={coverImageUrl}
-            onChange={(e) => setCoverImageUrl(e.target.value)}
-          />
-        </div>
+        <ImageUploader
+          label="Cover image"
+          value={coverImageUrl}
+          onChange={setCoverImageUrl}
+          folder="blog"
+        />
       </div>
       <div className="mb-4">
         <Label htmlFor="excerpt">Excerpt (optional)</Label>

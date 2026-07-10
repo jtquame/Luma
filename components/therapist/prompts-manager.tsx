@@ -4,8 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { TemplateBuilder } from "./template-builder";
 import { TemplateRow } from "./template-row";
+import { CheckInPresetLibrary } from "./checkin-preset-library";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Library } from "lucide-react";
 
 interface TemplateSummary {
   id: string;
@@ -24,6 +25,7 @@ export function PromptsManager({
   prompts: TemplateSummary[];
 }) {
   const [showBuilder, setShowBuilder] = useState(false);
+  const [showLibrary, setShowLibrary] = useState(false);
   const router = useRouter();
 
   function handleDone() {
@@ -33,19 +35,28 @@ export function PromptsManager({
 
   return (
     <div>
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-6">
         <p className="text-sm text-ink-muted max-w-md">
-          Check-ins repeat (daily or weekly); prompts are one-off. Clients only
-          ever see structured questions — never a blank text box.
+          Check-ins repeat on a cadence; prompts are one-off. Clients only ever
+          see structured questions — never a blank text box.
         </p>
-        {!showBuilder && (
-          <Button onClick={() => setShowBuilder(true)}>
-            <Plus size={16} strokeWidth={1.75} />
-            New template
-          </Button>
-        )}
+        <div className="flex gap-2 shrink-0">
+          {!showLibrary && (
+            <Button variant="secondary" onClick={() => setShowLibrary(true)}>
+              <Library size={16} strokeWidth={1.75} />
+              Add from library
+            </Button>
+          )}
+          {!showBuilder && (
+            <Button onClick={() => setShowBuilder(true)}>
+              <Plus size={16} strokeWidth={1.75} />
+              New template
+            </Button>
+          )}
+        </div>
       </div>
 
+      {showLibrary && <CheckInPresetLibrary onDone={() => setShowLibrary(false)} />}
       {showBuilder && <TemplateBuilder onDone={handleDone} />}
 
       <div className="mb-8">

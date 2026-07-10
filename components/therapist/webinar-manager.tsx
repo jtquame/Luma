@@ -7,6 +7,7 @@ import { webinarSchema } from "@/lib/validations/content";
 import { Card } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { ImageUploader } from "./image-uploader";
 import { Plus, Trash2, X } from "lucide-react";
 import { format } from "date-fns";
 
@@ -108,15 +109,12 @@ function WebinarForm({
           <Label htmlFor="video">Video URL</Label>
           <Input id="video" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} />
         </div>
-        <div>
-          <Label htmlFor="thumbnail">Thumbnail image URL</Label>
-          <Input
-            id="thumbnail"
-            value={thumbnailUrl}
-            onChange={(e) => setThumbnailUrl(e.target.value)}
-            placeholder="https://…"
-          />
-        </div>
+        <ImageUploader
+          label="Thumbnail image"
+          value={thumbnailUrl}
+          onChange={setThumbnailUrl}
+          folder="webinars"
+        />
         <div>
           <Label htmlFor="scheduled">Date & time (leave blank for on-demand)</Label>
           <Input

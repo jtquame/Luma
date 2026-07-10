@@ -163,8 +163,49 @@ changes from Samara's feedback:
   and it's a fast fix.
 
 Migrations added this round: `0010_assignments.sql`,
-`0011_checkin_cadence.sql`, `0012_terms.sql` — run these after `0009` in
-order, same as before.
+`0011_checkin_cadence.sql`, `0012_terms.sql`, `0013_image_storage.sql`,
+`0014_attachments_and_preferences.sql` — run these after `0009` in order,
+same as before.
+
+## Image uploads
+
+Blog covers, book covers, and webinar thumbnails now upload directly from
+a file or a phone's camera roll instead of pasting a URL — `0013_image_storage.sql`
+sets up a public Supabase Storage bucket called `images` with therapist-only
+write access. The upload button (`components/therapist/image-uploader.tsx`)
+uses a plain `<input type="file" accept="image/*">` with no `capture`
+attribute, which is what lets mobile browsers offer both "Photo Library"
+and "Take Photo" — restricting it to one would remove that choice.
+
+## Assignment attachments
+
+Skill-building assignments can now include an attached file (worksheet,
+PDF, doc) or photo, not just text instructions —
+`components/therapist/file-uploader.tsx` handles any file type, uploading
+to a separate, non-public `attachments` bucket (readable only by
+authenticated users, since these are tied to a specific client's homework
+rather than general branding content). Client sees a download link on
+their assignment card.
+
+## Check-in cadence: client override + preset library
+
+Two additions on top of the therapist-set default cadence:
+
+- **Client override**: each active check-in on `/check-in` has a small
+  "Remind me" dropdown letting a client pick their own frequency
+  (daily/weekly/biweekly/monthly), independent of whatever the therapist
+  set as the default. Stored in `client_template_preferences`; no row
+  means "use the template's default."
+- **Preset library**: "Add from library" on the Check-ins & prompts page
+  offers five ready-built check-ins (daily mood, weekly anxiety scale,
+  weekly gratitude, biweekly progress, monthly big-picture) that add in
+  one click instead of building question-by-question
+  (`lib/checkin-presets.ts`). Once added, they're indistinguishable from a
+  manually-built check-in — they follow their cadence automatically, no
+  further action needed. This was the reading I went with for "a list of
+  them so they can be automated"; if what was actually wanted is
+  different (e.g. scheduled push notifications, or something else
+  entirely), flag it and it can be adjusted.
 
 Not yet done: response CSV/PDF export, printable support-group calendar,
 and a full WCAG contrast/keyboard-nav audit.

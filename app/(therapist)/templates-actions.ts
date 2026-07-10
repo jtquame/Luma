@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { templateSchema, type TemplateInput } from "@/lib/validations/templates";
 import type { QuestionConfig } from "@/lib/supabase/types";
+import { CHECKIN_PRESETS } from "@/lib/checkin-presets";
 
 type ActionResult = { error: string | null };
 
@@ -120,4 +121,17 @@ export async function markResponseReviewed(responseId: string): Promise<ActionRe
 
   revalidatePath("/dashboard/prompts");
   return { error: null };
+}
+
+export async function addPresetTemplate(presetId: string): Promise<ActionResult> {
+  const preset = CHECKIN_PRESETS.find((p) => p.id === presetId);
+  if (!preset) return { error: "Unknown preset." };
+
+  return createTemplate({
+    kind: "check_in",
+    title: preset.title,
+    description: preset.description,
+    frequency: preset.frequency,
+    questions: preset.questions,
+  });
 }

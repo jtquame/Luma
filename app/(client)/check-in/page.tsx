@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { TemplateForm } from "@/components/client/template-form";
+import { CheckInFrequencyPicker } from "@/components/client/checkin-frequency-picker";
 import { Card } from "@/components/ui/card";
 import { isCheckInDue, nextAvailableMessage } from "@/lib/checkin-cadence";
 import type { QuestionType, QuestionConfig, CheckInFrequency } from "@/lib/supabase/types";
@@ -24,6 +25,16 @@ export default async function CheckInPage() {
     .eq("client_id", user!.id)
     .order("submitted_at", { ascending: false });
 
+  const { data: preferences } = await supabase
+    .from("client_template_preferences")
+    .select("template_id, frequency")
+    .eq("client_id", user!.id);
+
+  const preferenceByTemplate = new Map<string, CheckInFrequency>();
+  for (const p of preferences ?? []) {
+    preferenceByTemplate.set(p.template_id, p.frequency);
+  }
+
   // Most recent submission per template — used to compute cadence eligibility.
   const lastSubmittedByTemplate = new Map<string, string>();
   for (const r of lastResponses ?? []) {
@@ -37,6 +48,7 @@ export default async function CheckInPage() {
       <h1 className="font-display text-2xl mb-1">Check-in</h1>
       <p className="text-sm text-ink-muted mb-8">
         A few minutes, structured questions only — nothing to write from scratch.
+        Change how often any check-in appears using "Remind me" on each one.
       </p>
 
       <div className="space-y-6">
@@ -53,15 +65,26 @@ export default async function CheckInPage() {
           ).sort((a, b) => a.position - b.position);
 
           const lastSubmittedAt = lastSubmittedByTemplate.get(t.id) ?? null;
-          const frequency = (t.frequency as CheckInFrequency | null) ?? null;
+          const templateDefault = (t.frequency as CheckInFrequency | null) ?? "daily";
+          const effectiveFrequency = preferenceByTemplate.get(t.id) ?? templateDefault;
 
-          if (t.kind === "check_in" && lastSubmittedAt && !isCheckInDue(frequency, lastSubmittedAt)) {
+          const picker =
+            t.kind === "check_in" ? (
+              <CheckInFrequencyPicker templateId={t.id} currentFrequency={effectiveFrequency} />
+            ) : undefined;
+
+          if (
+            t.kind === "check_in" &&
+            lastSubmittedAt &&
+            !isCheckInDue(effectiveFrequency, lastSubmittedAt)
+          ) {
             return (
               <Card key={t.id}>
                 <p className="font-medium text-ink mb-1">{t.title}</p>
-                <p className="text-sm text-ink-muted">
-                  {nextAvailableMessage(frequency, lastSubmittedAt)}
+                <p className="text-sm text-ink-muted mb-3">
+                  {nextAvailableMessage(effectiveFrequency, lastSubmittedAt)}
                 </p>
+                {picker}
               </Card>
             );
           }
@@ -73,6 +96,7 @@ export default async function CheckInPage() {
               title={t.title}
               description={t.description}
               questions={questions}
+              headerExtra={picker}
             />
           );
         })}
