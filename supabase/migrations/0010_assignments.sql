@@ -5,9 +5,14 @@
 -- (a worksheet, a reflection prompt, a skill to practice) to one client
 -- after a session, and only that client sees it.
 
-create type assignment_status as enum ('assigned', 'completed');
+do $$
+begin
+  if not exists (select 1 from pg_type where typname = 'assignment_status') then
+    create type assignment_status as enum ('assigned', 'completed');
+  end if;
+end $$;
 
-create table public.assignments (
+create table if not exists public.assignments (
   id uuid primary key default gen_random_uuid(),
   client_id uuid not null references public.users(id),
   title text not null,
@@ -25,23 +30,28 @@ create table public.assignments (
   updated_at timestamptz not null default now()
 );
 
-create index assignments_client_idx on public.assignments (client_id, created_at desc);
+create index if not exists assignments_client_idx on public.assignments (client_id, created_at desc);
 
+drop trigger if exists assignments_touch_updated_at on public.assignments;
 create trigger assignments_touch_updated_at
   before update on public.assignments
   for each row execute function public.touch_updated_at();
 
 alter table public.assignments enable row level security;
 
+drop policy if exists assignments_select on public.assignments;
 create policy assignments_select on public.assignments
   for select using (public.is_therapist() or client_id = auth.uid());
 
+drop policy if exists assignments_write_therapist_only on public.assignments;
 create policy assignments_write_therapist_only on public.assignments
   for insert with check (public.is_therapist());
 
+drop policy if exists assignments_update on public.assignments;
 create policy assignments_update on public.assignments
   for update using (public.is_therapist() or client_id = auth.uid());
 
+drop policy if exists assignments_delete_therapist_only on public.assignments;
 create policy assignments_delete_therapist_only on public.assignments
   for delete using (public.is_therapist());
 
@@ -71,6 +81,7 @@ begin
 end;
 $$;
 
+drop trigger if exists assignments_guard_client_edits on public.assignments;
 create trigger assignments_guard_client_edits
   before update on public.assignments
   for each row execute function public.guard_assignment_client_edits();

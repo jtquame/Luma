@@ -6,15 +6,18 @@
 -- when. A client is "current" only if they have an acceptance record for
 -- the current version within the last 30 days — this naturally forces
 -- re-signing both on a timer AND whenever the text changes.
+--
+-- Written to be safely re-runnable.
 
-create table public.terms_content (
+create table if not exists public.terms_content (
   id boolean primary key default true constraint terms_content_singleton check (id),
   version int not null default 1,
-  body text not null default 'By using Luma, you agree to use this portal as a supplement to your therapy sessions with Samara Lynch, not a replacement for them. Information you share here may be reviewed by your therapist as part of your care.',
+  body text not null default 'By using this portal, you agree to use it as a supplement to your therapy sessions with Samara Lynch, not a replacement for them. Information you share here may be reviewed by your therapist as part of your care.',
   updated_at timestamptz not null default now()
 );
 
-insert into public.terms_content (id) values (true);
+insert into public.terms_content (id) values (true)
+on conflict (id) do nothing;
 
 create or replace function public.bump_terms_version()
 returns trigger
@@ -29,32 +32,38 @@ begin
 end;
 $$;
 
+drop trigger if exists terms_content_bump_version on public.terms_content;
 create trigger terms_content_bump_version
   before update on public.terms_content
   for each row execute function public.bump_terms_version();
 
-create table public.terms_acceptances (
+create table if not exists public.terms_acceptances (
   id uuid primary key default gen_random_uuid(),
   client_id uuid not null references public.users(id),
   version int not null,
   accepted_at timestamptz not null default now()
 );
 
-create index terms_acceptances_client_idx on public.terms_acceptances (client_id, accepted_at desc);
+create index if not exists terms_acceptances_client_idx
+  on public.terms_acceptances (client_id, accepted_at desc);
 
 alter table public.terms_content enable row level security;
 alter table public.terms_acceptances enable row level security;
 
 -- Everyone (including pre-terms-acceptance clients) needs to read the
 -- current text to be shown the accept screen.
+drop policy if exists terms_content_select_all on public.terms_content;
 create policy terms_content_select_all on public.terms_content
   for select using (true);
 
+drop policy if exists terms_content_update_therapist_only on public.terms_content;
 create policy terms_content_update_therapist_only on public.terms_content
   for update using (public.is_therapist());
 
+drop policy if exists terms_acceptances_select on public.terms_acceptances;
 create policy terms_acceptances_select on public.terms_acceptances
   for select using (public.is_therapist() or client_id = auth.uid());
 
+drop policy if exists terms_acceptances_insert_own on public.terms_acceptances;
 create policy terms_acceptances_insert_own on public.terms_acceptances
   for insert with check (client_id = auth.uid());

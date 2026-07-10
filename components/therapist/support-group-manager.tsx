@@ -185,60 +185,6 @@ function AnnouncementForm({ onDone }: { onDone: () => void }) {
   );
 }
 
-export function SupportGroupManager({
-  groups,
-  announcements,
-}: {
-  groups: Group[];
-  announcements: Announcement[];
-}) {
-  const [showGroupForm, setShowGroupForm] = useState(false);
-  const [showAnnouncementForm, setShowAnnouncementForm] = useState(false);
-  const [isPending, startTransition] = useTransition();
-
-  return (
-    <div>
-      <div className="mb-10">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="eyebrow">Support groups</h2>
-          {!showGroupForm && (
-            <Button size="sm" onClick={() => setShowGroupForm(true)}>
-              <Plus size={15} /> Add group
-            </Button>
-          )}
-        </div>
-        {showGroupForm && <GroupForm onDone={() => setShowGroupForm(false)} />}
-        {groups.length === 0 ? (
-          <p className="text-sm text-ink-muted">No support groups yet.</p>
-        ) : (
-          <div className="space-y-3">
-            {groups.map((g) => (
-              <Card key={g.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div>
-                  <p className="font-medium text-ink">{g.title}</p>
-                  <p className="eyebrow mt-1">
-                    {g.meets_at && format(new Date(g.meets_at), "MMM d, yyyy 'at' h:mm a")}
-                    {g.location && ` · ${g.location}`}
-                    {g.is_recurring && " · Recurring"}
-                  </p>
-                </div>
-                <button
-                  disabled={isPending}
-                  onClick={() => {
-                    if (confirm("Delete this support group?"))
-                      startTransition(() => deleteSupportGroup(g.id));
-                  }}
-                  className="text-ink-muted hover:text-danger"
-                  aria-label="Delete group"
-                >
-                  <Trash2 size={17} />
-                </button>
-              </Card>
-            ))}
-          </div>
-        )}
-      </div>
-
 export function GroupsManager({ groups }: { groups: Group[] }) {
   const [showGroupForm, setShowGroupForm] = useState(false);
   const [isPending, startTransition] = useTransition();
