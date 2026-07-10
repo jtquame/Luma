@@ -1,4 +1,4 @@
--- Luma: shared access-code gate (Milestone 2b)
+-- Tribe Works: shared access-code gate (Milestone 2b)
 --
 -- Replaces per-email invitations as the primary onboarding path: Samara
 -- shares one code with clients directly (text, verbally, printed on an

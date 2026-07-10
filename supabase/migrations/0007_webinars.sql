@@ -1,4 +1,4 @@
--- Luma: webinars (Milestone 9)
+-- Tribe Works: webinars (Milestone 9)
 
 create table public.webinars (
   id uuid primary key default gen_random_uuid(),

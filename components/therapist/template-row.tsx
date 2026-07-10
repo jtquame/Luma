@@ -23,7 +23,7 @@ export function TemplateRow({
   const [isPending, startTransition] = useTransition();
 
   return (
-    <Card className="flex items-center justify-between">
+    <Card className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <div>
         <div className="flex items-center gap-2">
           <p className="font-medium text-ink">{title}</p>

@@ -3,16 +3,10 @@ import { SettingsManager } from "@/components/therapist/settings-manager";
 
 export default async function TherapistSettingsPage() {
   const supabase = await createClient();
-  const [{ data: settings }, { data: reading }] = await Promise.all([
-    supabase
-      .from("settings")
-      .select("practice_name, welcome_message, session_timeout_minutes")
-      .single(),
-    supabase
-      .from("currently_reading")
-      .select("book_title, author, why_reading, learning_note, favorite_quote")
-      .single(),
-  ]);
+  const { data: settings } = await supabase
+    .from("settings")
+    .select("practice_name, welcome_message, session_timeout_minutes")
+    .single();
 
   return (
     <div>
@@ -24,15 +18,6 @@ export default async function TherapistSettingsPage() {
             practice_name: "Tribe Works Behavioral Services",
             welcome_message: "Glad you're here.",
             session_timeout_minutes: 30,
-          }
-        }
-        reading={
-          reading ?? {
-            book_title: null,
-            author: null,
-            why_reading: null,
-            learning_note: null,
-            favorite_quote: null,
           }
         }
       />

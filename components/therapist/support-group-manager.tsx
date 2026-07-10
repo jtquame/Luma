@@ -78,7 +78,7 @@ function GroupForm({ onDone }: { onDone: () => void }) {
           <Label htmlFor="gtitle">Title</Label>
           <Input id="gtitle" value={title} onChange={(e) => setTitle(e.target.value)} />
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <Label htmlFor="meets">Date & time</Label>
             <Input
@@ -213,7 +213,7 @@ export function SupportGroupManager({
         ) : (
           <div className="space-y-3">
             {groups.map((g) => (
-              <Card key={g.id} className="flex items-center justify-between">
+              <Card key={g.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <p className="font-medium text-ink">{g.title}</p>
                   <p className="eyebrow mt-1">
@@ -239,44 +239,100 @@ export function SupportGroupManager({
         )}
       </div>
 
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="eyebrow">Announcements</h2>
-          {!showAnnouncementForm && (
-            <Button size="sm" onClick={() => setShowAnnouncementForm(true)}>
-              <Plus size={15} /> New announcement
-            </Button>
-          )}
-        </div>
-        {showAnnouncementForm && (
-          <AnnouncementForm onDone={() => setShowAnnouncementForm(false)} />
-        )}
-        {announcements.length === 0 ? (
-          <p className="text-sm text-ink-muted">No announcements yet.</p>
-        ) : (
-          <div className="space-y-3">
-            {announcements.map((a) => (
-              <Card key={a.id} className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium text-ink">{a.title}</p>
-                  <p className="text-sm text-ink-muted mt-0.5">{a.body}</p>
-                </div>
-                <button
-                  disabled={isPending}
-                  onClick={() => {
-                    if (confirm("Delete this announcement?"))
-                      startTransition(() => deleteAnnouncement(a.id));
-                  }}
-                  className="text-ink-muted hover:text-danger"
-                  aria-label="Delete announcement"
-                >
-                  <Trash2 size={17} />
-                </button>
-              </Card>
-            ))}
-          </div>
+export function GroupsManager({ groups }: { groups: Group[] }) {
+  const [showGroupForm, setShowGroupForm] = useState(false);
+  const [isPending, startTransition] = useTransition();
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-sm text-ink-muted max-w-md">
+          Meeting details clients can see — no forum, no chat.
+        </p>
+        {!showGroupForm && (
+          <Button size="sm" onClick={() => setShowGroupForm(true)}>
+            <Plus size={15} /> Add group
+          </Button>
         )}
       </div>
+      {showGroupForm && <GroupForm onDone={() => setShowGroupForm(false)} />}
+      {groups.length === 0 ? (
+        <p className="text-sm text-ink-muted">No support groups yet.</p>
+      ) : (
+        <div className="space-y-3">
+          {groups.map((g) => (
+            <Card key={g.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <p className="font-medium text-ink">{g.title}</p>
+                <p className="eyebrow mt-1">
+                  {g.meets_at && format(new Date(g.meets_at), "MMM d, yyyy 'at' h:mm a")}
+                  {g.location && ` · ${g.location}`}
+                  {g.is_recurring && " · Recurring"}
+                </p>
+              </div>
+              <button
+                disabled={isPending}
+                onClick={() => {
+                  if (confirm("Delete this support group?"))
+                    startTransition(() => deleteSupportGroup(g.id));
+                }}
+                className="text-ink-muted hover:text-danger"
+                aria-label="Delete group"
+              >
+                <Trash2 size={17} />
+              </button>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function AnnouncementsManager({ announcements }: { announcements: Announcement[] }) {
+  const [showAnnouncementForm, setShowAnnouncementForm] = useState(false);
+  const [isPending, startTransition] = useTransition();
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-sm text-ink-muted max-w-md">
+          Short updates shown to every client — no forum, no replies.
+        </p>
+        {!showAnnouncementForm && (
+          <Button size="sm" onClick={() => setShowAnnouncementForm(true)}>
+            <Plus size={15} /> New announcement
+          </Button>
+        )}
+      </div>
+      {showAnnouncementForm && (
+        <AnnouncementForm onDone={() => setShowAnnouncementForm(false)} />
+      )}
+      {announcements.length === 0 ? (
+        <p className="text-sm text-ink-muted">No announcements yet.</p>
+      ) : (
+        <div className="space-y-3">
+          {announcements.map((a) => (
+            <Card key={a.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <p className="font-medium text-ink">{a.title}</p>
+                <p className="text-sm text-ink-muted mt-0.5">{a.body}</p>
+              </div>
+              <button
+                disabled={isPending}
+                onClick={() => {
+                  if (confirm("Delete this announcement?"))
+                    startTransition(() => deleteAnnouncement(a.id));
+                }}
+                className="text-ink-muted hover:text-danger"
+                aria-label="Delete announcement"
+              >
+                <Trash2 size={17} />
+              </button>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

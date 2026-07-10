@@ -49,7 +49,7 @@ export default function JoinPage() {
 
   return (
     <Card>
-      <h2 className="font-display text-xl mb-1">Join Luma</h2>
+      <h2 className="font-display text-xl mb-1">Join Tribe Works</h2>
       <p className="text-sm text-ink-muted mb-6">
         Enter the access code your therapist gave you, then set up your account.
       </p>
@@ -65,7 +65,7 @@ export default function JoinPage() {
           <FieldError>{errors.accessCode}</FieldError>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
           <div>
             <Label htmlFor="firstName">First name</Label>
             <Input

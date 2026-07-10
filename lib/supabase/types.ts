@@ -1,7 +1,9 @@
 export type UserRole = "therapist" | "client";
 export type InvitationStatus = "pending" | "accepted" | "revoked" | "expired";
 export type TemplateKind = "check_in" | "prompt";
+export type CheckInFrequency = "daily" | "weekly" | "biweekly" | "monthly";
 export type BookStatus = "recommended" | "optional" | "advanced";
+export type AssignmentStatus = "assigned" | "completed";
 export type QuestionType =
   | "single_choice"
   | "multi_choice"
@@ -110,6 +112,7 @@ export interface Database {
           title: string;
           description: string | null;
           is_active: boolean;
+          frequency: CheckInFrequency | null;
           created_by: string;
           created_at: string;
           updated_at: string;
@@ -119,6 +122,7 @@ export interface Database {
           title: string;
           description?: string | null;
           is_active?: boolean;
+          frequency?: CheckInFrequency | null;
           created_by: string;
         };
         Update: Partial<Database["public"]["Tables"]["templates"]["Insert"]>;
@@ -334,6 +338,45 @@ export interface Database {
           created_by: string;
           expires_at?: string | null;
         };
+        Update: never;
+      };
+      assignments: {
+        Row: {
+          id: string;
+          client_id: string;
+          title: string;
+          instructions: string;
+          reflection_prompt: string | null;
+          reflection_max_length: number | null;
+          status: AssignmentStatus;
+          reflection_response: string | null;
+          completed_at: string | null;
+          created_by: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          client_id: string;
+          title: string;
+          instructions: string;
+          reflection_prompt?: string | null;
+          reflection_max_length?: number | null;
+          created_by: string;
+        };
+        Update: {
+          status?: AssignmentStatus;
+          reflection_response?: string | null;
+          completed_at?: string | null;
+        };
+      };
+      terms_content: {
+        Row: { id: true; version: number; body: string; updated_at: string };
+        Insert: { body?: string };
+        Update: { body: string };
+      };
+      terms_acceptances: {
+        Row: { id: string; client_id: string; version: number; accepted_at: string };
+        Insert: { client_id: string; version: number };
         Update: never;
       };
     };

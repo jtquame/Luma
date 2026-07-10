@@ -1,4 +1,4 @@
--- Luma: "What Your Therapist Is Currently Reading" (Milestone 8)
+-- Tribe Works: "What Your Therapist Is Currently Reading" (Milestone 8)
 -- A single personal page, not a list — Samara updates one entry at a time.
 
 create table public.currently_reading (

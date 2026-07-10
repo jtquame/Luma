@@ -82,6 +82,35 @@ export async function createWebinar(input: WebinarInput): Promise<ActionResult> 
   return { error: null };
 }
 
+export async function updateWebinar(id: string, input: WebinarInput): Promise<ActionResult> {
+  const parsed = webinarSchema.safeParse(input);
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+
+  const { supabase } = await requireTherapist();
+
+  const { error } = await supabase
+    .from("webinars")
+    .update({
+      title: parsed.data.title,
+      description: parsed.data.description || null,
+      speaker: parsed.data.speaker || null,
+      video_url: parsed.data.videoUrl || null,
+      thumbnail_url: parsed.data.thumbnailUrl || null,
+      length_minutes: parsed.data.lengthMinutes || null,
+      slides_url: parsed.data.slidesUrl || null,
+      worksheet_url: parsed.data.worksheetUrl || null,
+      scheduled_at: parsed.data.scheduledAt || null,
+      registration_url: parsed.data.registrationUrl || null,
+    })
+    .eq("id", id);
+
+  if (error) return { error: "Couldn't update the webinar. Try again." };
+
+  revalidatePath("/dashboard/webinars");
+  revalidatePath("/webinars");
+  return { error: null };
+}
+
 export async function deleteWebinar(id: string): Promise<ActionResult> {
   const { supabase } = await requireTherapist();
   const { error } = await supabase.from("webinars").delete().eq("id", id);
@@ -141,8 +170,8 @@ export async function createAnnouncement(input: AnnouncementInput): Promise<Acti
 
   if (error) return { error: "Couldn't post the announcement." };
 
-  revalidatePath("/dashboard/support-groups");
-  revalidatePath("/support-groups");
+  revalidatePath("/dashboard/announcements");
+  revalidatePath("/announcements");
   revalidatePath("/home");
   return { error: null };
 }
@@ -152,8 +181,8 @@ export async function deleteAnnouncement(id: string): Promise<ActionResult> {
   const { error } = await supabase.from("announcements").delete().eq("id", id);
   if (error) return { error: "Couldn't delete that." };
 
-  revalidatePath("/dashboard/support-groups");
-  revalidatePath("/support-groups");
+  revalidatePath("/dashboard/announcements");
+  revalidatePath("/announcements");
   return { error: null };
 }
 

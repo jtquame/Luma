@@ -9,13 +9,22 @@ import { Plus } from "lucide-react";
 interface Post {
   id: string;
   title: string;
+  excerpt: string | null;
   category: string | null;
+  cover_image_url: string | null;
+  body: string;
   is_published: boolean;
   published_at: string | null;
 }
 
 export function BlogManager({ posts }: { posts: Post[] }) {
   const [showEditor, setShowEditor] = useState(false);
+  const [editingPost, setEditingPost] = useState<Post | null>(null);
+
+  function handleDone() {
+    setShowEditor(false);
+    setEditingPost(null);
+  }
 
   return (
     <div>
@@ -29,7 +38,9 @@ export function BlogManager({ posts }: { posts: Post[] }) {
         )}
       </div>
 
-      {showEditor && <BlogEditor onDone={() => setShowEditor(false)} />}
+      {showEditor && (
+        <BlogEditor onDone={handleDone} existingPost={editingPost ?? undefined} />
+      )}
 
       {posts.length === 0 ? (
         <p className="text-sm text-ink-muted">No posts yet.</p>
@@ -43,6 +54,10 @@ export function BlogManager({ posts }: { posts: Post[] }) {
               category={p.category}
               isPublished={p.is_published}
               publishedAt={p.published_at}
+              onEdit={() => {
+                setEditingPost(p);
+                setShowEditor(true);
+              }}
             />
           ))}
         </div>

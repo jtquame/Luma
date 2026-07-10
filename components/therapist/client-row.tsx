@@ -23,12 +23,12 @@ export function ClientRow({
   const [isPending, startTransition] = useTransition();
 
   return (
-    <div className="flex items-center justify-between px-6 py-4">
-      <div>
-        <p className="text-sm font-medium text-ink">{name}</p>
-        <p className="text-sm text-ink-muted">{email}</p>
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-4 sm:px-6 py-4">
+      <div className="min-w-0">
+        <p className="text-sm font-medium text-ink truncate">{name}</p>
+        <p className="text-sm text-ink-muted truncate">{email}</p>
       </div>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 flex-wrap">
         {status === "pending" && expiresAt && (
           <span className="eyebrow text-accent">
             expires {formatDistanceToNow(new Date(expiresAt), { addSuffix: true })}

@@ -23,6 +23,7 @@ function blankQuestion(): QuestionInput {
 
 export function TemplateBuilder({ onDone }: { onDone: () => void }) {
   const [kind, setKind] = useState<"check_in" | "prompt">("check_in");
+  const [frequency, setFrequency] = useState<"daily" | "weekly" | "biweekly" | "monthly">("daily");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [questions, setQuestions] = useState<QuestionInput[]>([blankQuestion()]);
@@ -77,7 +78,13 @@ export function TemplateBuilder({ onDone }: { onDone: () => void }) {
     e.preventDefault();
     setError(null);
 
-    const parsed = templateSchema.safeParse({ kind, title, description, questions });
+    const parsed = templateSchema.safeParse({
+      kind,
+      title,
+      description,
+      frequency: kind === "check_in" ? frequency : undefined,
+      questions,
+    });
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? "Check the form for errors");
       return;
@@ -129,6 +136,28 @@ export function TemplateBuilder({ onDone }: { onDone: () => void }) {
             placeholder={kind === "check_in" ? "Daily check-in" : "Weekly reflection"}
           />
         </div>
+
+        {kind === "check_in" && (
+          <div className="mb-4">
+            <Label>How often</Label>
+            <div className="flex gap-2">
+              {(["daily", "weekly", "biweekly", "monthly"] as const).map((f) => (
+                <button
+                  type="button"
+                  key={f}
+                  onClick={() => setFrequency(f)}
+                  className={`rounded-lg px-3 py-1.5 text-sm border capitalize ${
+                    frequency === f
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "border-border text-ink-muted"
+                  }`}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
         <div className="mb-6">
           <Label htmlFor="description">Description (optional)</Label>
           <Input
@@ -141,8 +170,8 @@ export function TemplateBuilder({ onDone }: { onDone: () => void }) {
         <div className="space-y-5 mb-5">
           {questions.map((q, qIndex) => (
             <div key={qIndex} className="rounded-lg border border-border p-4">
-              <div className="flex items-start gap-3 mb-3">
-                <div className="flex-1">
+              <div className="flex flex-col sm:flex-row items-start gap-3 mb-3">
+                <div className="flex-1 w-full">
                   <Label>Question</Label>
                   <Input
                     value={q.label}
@@ -150,7 +179,7 @@ export function TemplateBuilder({ onDone }: { onDone: () => void }) {
                     placeholder="How anxious have you felt this week?"
                   />
                 </div>
-                <div className="w-48">
+                <div className="w-full sm:w-48">
                   <Label>Type</Label>
                   <select
                     value={q.type}
@@ -170,7 +199,7 @@ export function TemplateBuilder({ onDone }: { onDone: () => void }) {
                   <button
                     type="button"
                     onClick={() => setQuestions((qs) => qs.filter((_, i) => i !== qIndex))}
-                    className="mt-6 text-ink-muted hover:text-danger"
+                    className="sm:mt-6 text-ink-muted hover:text-danger self-end sm:self-auto"
                     aria-label="Remove question"
                   >
                     <Trash2 size={17} />

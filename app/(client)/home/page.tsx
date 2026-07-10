@@ -1,8 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
-import { BreathingOrb } from "@/components/client/breathing-orb";
 import { Card } from "@/components/ui/card";
 import Link from "next/link";
-import { format } from "date-fns";
+import { randomQuote } from "@/lib/quotes";
+import { isCheckInDue } from "@/lib/checkin-cadence";
+import type { CheckInFrequency } from "@/lib/supabase/types";
 
 export default async function ClientHomePage() {
   const supabase = await createClient();
@@ -16,23 +17,29 @@ export default async function ClientHomePage() {
     .eq("id", user!.id)
     .single();
 
-  const { data: settings } = await supabase.from("settings").select("welcome_message").single();
-
   const { data: activeCheckIns } = await supabase
     .from("templates")
-    .select("id")
+    .select("id, frequency")
     .eq("kind", "check_in")
     .eq("is_active", true);
 
-  const today = new Date().toISOString().slice(0, 10);
-  const { data: todaysResponses } = await supabase
+  const { data: lastResponses } = await supabase
     .from("responses")
-    .select("template_id")
+    .select("template_id, submitted_at")
     .eq("client_id", user!.id)
-    .gte("submitted_at", `${today}T00:00:00Z`);
+    .order("submitted_at", { ascending: false });
 
-  const completedIds = new Set((todaysResponses ?? []).map((r) => r.template_id));
-  const pendingCount = (activeCheckIns ?? []).filter((t) => !completedIds.has(t.id)).length;
+  const lastSubmittedByTemplate = new Map<string, string>();
+  for (const r of lastResponses ?? []) {
+    if (!lastSubmittedByTemplate.has(r.template_id)) {
+      lastSubmittedByTemplate.set(r.template_id, r.submitted_at);
+    }
+  }
+
+  const pendingCount = (activeCheckIns ?? []).filter((t) => {
+    const last = lastSubmittedByTemplate.get(t.id) ?? null;
+    return isCheckInDue(t.frequency as CheckInFrequency | null, last);
+  }).length;
 
   const { data: latestPost } = await supabase
     .from("blog_posts")
@@ -42,43 +49,30 @@ export default async function ClientHomePage() {
     .limit(1)
     .maybeSingle();
 
-  const { data: featuredBook } = await supabase
-    .from("books")
-    .select("title, author")
-    .eq("status", "recommended")
+  const { data: pendingAssignments } = await supabase
+    .from("assignments")
+    .select("id, title")
+    .eq("client_id", user!.id)
+    .eq("status", "assigned")
+    .order("created_at", { ascending: false });
+
+  const { data: latestAnnouncement } = await supabase
+    .from("announcements")
+    .select("title, body")
     .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  const { data: currentlyReading } = await supabase
-    .from("currently_reading")
-    .select("book_title, author")
-    .single();
-
-  const { data: nextGroup } = await supabase
-    .from("support_groups")
-    .select("title, meets_at")
-    .gte("meets_at", new Date().toISOString())
-    .order("meets_at", { ascending: true })
     .limit(1)
     .maybeSingle();
 
   return (
     <div>
-      <div className="flex items-center gap-6 mb-10 animate-fade-rise">
-        <BreathingOrb />
-        <div>
-          <p className="eyebrow mb-1">Welcome back</p>
-          <h1 className="font-display text-3xl mb-1">Hi, {profile?.first_name ?? "there"}.</h1>
-          <p className="text-sm text-ink-muted">
-            {settings?.welcome_message ?? "Glad you're here."}
-          </p>
-        </div>
+      <div className="mb-10 animate-fade-rise">
+        <h1 className="font-display text-3xl mb-2">Hi, {profile?.first_name ?? "there"}.</h1>
+        <p className="text-sm text-ink-muted italic">"{randomQuote()}"</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Link href="/check-in">
-          <Card className="hover:border-primary/40 transition-colors">
+          <Card className="hover:border-primary/40 transition-colors h-full">
             <p className="eyebrow mb-2">Today's check-in</p>
             {!activeCheckIns || activeCheckIns.length === 0 ? (
               <p className="text-sm text-ink-muted">
@@ -93,37 +87,35 @@ export default async function ClientHomePage() {
             )}
           </Card>
         </Link>
+
         <Link href={latestPost ? `/blog/${latestPost.slug}` : "/blog"}>
-          <Card className="hover:border-primary/40 transition-colors">
+          <Card className="hover:border-primary/40 transition-colors h-full">
             <p className="eyebrow mb-2">Latest from the blog</p>
             <p className="text-sm text-ink-muted">
               {latestPost ? latestPost.title : "Nothing published yet."}
             </p>
           </Card>
         </Link>
-        <Link href="/books">
-          <Card className="hover:border-primary/40 transition-colors">
-            <p className="eyebrow mb-2">Recommended book</p>
-            <p className="text-sm text-ink-muted">
-              {featuredBook ? `${featuredBook.title} — ${featuredBook.author}` : "Not shared yet."}
-            </p>
+
+        <Link href="/skill-building">
+          <Card className="hover:border-primary/40 transition-colors h-full">
+            <p className="eyebrow mb-2">What's assigned</p>
+            {!pendingAssignments || pendingAssignments.length === 0 ? (
+              <p className="text-sm text-ink-muted">Nothing assigned right now.</p>
+            ) : (
+              <p className="text-sm text-primary font-medium">
+                {pendingAssignments.length} assignment{pendingAssignments.length === 1 ? "" : "s"}{" "}
+                waiting →
+              </p>
+            )}
           </Card>
         </Link>
-        <Card>
-          <p className="eyebrow mb-2">What Samara's reading</p>
-          <p className="text-sm text-ink-muted">
-            {currentlyReading?.book_title
-              ? `${currentlyReading.book_title}${currentlyReading.author ? ` — ${currentlyReading.author}` : ""}`
-              : "Not shared yet."}
-          </p>
-        </Card>
-        <Link href="/support-groups" className="col-span-2">
-          <Card className="hover:border-primary/40 transition-colors">
-            <p className="eyebrow mb-2">Support group</p>
+
+        <Link href="/announcements">
+          <Card className="hover:border-primary/40 transition-colors h-full">
+            <p className="eyebrow mb-2">Announcements</p>
             <p className="text-sm text-ink-muted">
-              {nextGroup
-                ? `${nextGroup.title} · ${format(new Date(nextGroup.meets_at!), "MMM d, yyyy 'at' h:mm a")}`
-                : "No upcoming meetings posted."}
+              {latestAnnouncement ? latestAnnouncement.title : "Nothing posted yet."}
             </p>
           </Card>
         </Link>

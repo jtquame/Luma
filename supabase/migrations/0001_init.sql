@@ -1,4 +1,4 @@
--- Luma: core schema (Milestone 1)
+-- Tribe Works: core schema (Milestone 1)
 -- One therapist (admin), invite-only clients. Minimal PII by design —
 -- see DESIGN.md / master spec: only first name, last name, email, password.
 

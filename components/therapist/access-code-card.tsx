@@ -77,7 +77,7 @@ export function AccessCodeCard({ initialCode }: { initialCode: string | null }) 
           </Button>
         </div>
       ) : (
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <div className="flex items-center gap-2 rounded-lg border border-border bg-bg px-3.5 py-2">
             <span className="font-mono text-sm tracking-wider">
               {visible ? code : "•".repeat(Math.max(code.length, 6))}

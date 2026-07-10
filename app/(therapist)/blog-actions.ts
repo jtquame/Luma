@@ -54,6 +54,34 @@ export async function createBlogPost(input: BlogPostInput): Promise<ActionResult
   return { error: null };
 }
 
+export async function updateBlogPost(
+  postId: string,
+  input: BlogPostInput
+): Promise<ActionResult> {
+  const parsed = blogPostSchema.safeParse(input);
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+
+  const { supabase } = await requireTherapist();
+
+  const { error } = await supabase
+    .from("blog_posts")
+    .update({
+      title: parsed.data.title,
+      excerpt: parsed.data.excerpt || null,
+      body: parsed.data.body,
+      category: parsed.data.category || null,
+      cover_image_url: parsed.data.coverImageUrl || null,
+      is_published: parsed.data.isPublished,
+    })
+    .eq("id", postId);
+
+  if (error) return { error: "Couldn't update the post. Try again." };
+
+  revalidatePath("/dashboard/blog");
+  revalidatePath("/blog");
+  return { error: null };
+}
+
 export async function setBlogPostPublished(
   postId: string,
   isPublished: boolean

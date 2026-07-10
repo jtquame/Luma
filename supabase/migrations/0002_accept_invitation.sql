@@ -1,4 +1,4 @@
--- Luma: invitation acceptance RPCs (Milestone 2)
+-- Tribe Works: invitation acceptance RPCs (Milestone 2)
 -- Clients hitting /accept-invite are NOT authenticated yet, so they can't be
 -- covered by the users/invitations RLS policies. These two security-definer
 -- functions are the only pre-auth surface into the invitations table, and

@@ -1,4 +1,4 @@
--- Luma: book resource library (Milestone 7)
+-- Tribe Works: book resource library (Milestone 7)
 
 create type book_status as enum ('recommended', 'optional', 'advanced');
 

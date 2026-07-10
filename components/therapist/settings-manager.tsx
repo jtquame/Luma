@@ -136,7 +136,7 @@ function CurrentlyReadingForm({ reading }: { reading: ReadingData }) {
         Shown on your clients' home page — a personal touch, not a full library entry.
       </p>
       <form onSubmit={handleSubmit} noValidate className="space-y-4">
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <Label htmlFor="bookTitle">Book title</Label>
             <Input id="bookTitle" value={bookTitle} onChange={(e) => setBookTitle(e.target.value)} />
@@ -187,17 +187,10 @@ function CurrentlyReadingForm({ reading }: { reading: ReadingData }) {
   );
 }
 
-export function SettingsManager({
-  settings,
-  reading,
-}: {
-  settings: SettingsData;
-  reading: ReadingData;
-}) {
+export function SettingsManager({ settings }: { settings: SettingsData }) {
   return (
     <div>
       <PracticeSettingsForm settings={settings} />
-      <CurrentlyReadingForm reading={reading} />
     </div>
   );
 }

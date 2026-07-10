@@ -5,7 +5,7 @@ export default async function TherapistWebinarsPage() {
   const supabase = await createClient();
   const { data: webinars } = await supabase
     .from("webinars")
-    .select("id, title, speaker, scheduled_at, length_minutes")
+    .select("id, title, speaker, scheduled_at, length_minutes, description, video_url, thumbnail_url")
     .order("scheduled_at", { ascending: false, nullsFirst: false });
 
   return (

@@ -1,38 +1,17 @@
 import { createClient } from "@/lib/supabase/server";
 import { Card } from "@/components/ui/card";
-import { format, formatDistanceToNow } from "date-fns";
+import { format } from "date-fns";
 
 export default async function ClientSupportGroupsPage() {
   const supabase = await createClient();
-  const [{ data: groups }, { data: announcements }] = await Promise.all([
-    supabase
-      .from("support_groups")
-      .select("id, title, description, who_should_attend, meets_at, location, virtual_link, is_recurring")
-      .order("meets_at", { ascending: true, nullsFirst: false }),
-    supabase
-      .from("announcements")
-      .select("id, title, body, created_at")
-      .order("created_at", { ascending: false })
-      .limit(5),
-  ]);
+  const { data: groups } = await supabase
+    .from("support_groups")
+    .select("id, title, description, who_should_attend, meets_at, location, virtual_link, is_recurring")
+    .order("meets_at", { ascending: true, nullsFirst: false });
 
   return (
     <div>
       <h1 className="font-display text-2xl mb-8">Support groups</h1>
-
-      {announcements && announcements.length > 0 && (
-        <div className="mb-8 space-y-3">
-          {announcements.map((a) => (
-            <Card key={a.id} className="bg-sage/20 border-sage">
-              <p className="font-medium text-ink">{a.title}</p>
-              <p className="text-sm text-ink-muted mt-0.5">{a.body}</p>
-              <p className="eyebrow mt-2">
-                {formatDistanceToNow(new Date(a.created_at), { addSuffix: true })}
-              </p>
-            </Card>
-          ))}
-        </div>
-      )}
 
       {!groups || groups.length === 0 ? (
         <Card>

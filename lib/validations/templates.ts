@@ -45,6 +45,7 @@ export const templateSchema = z.object({
   kind: z.enum(["check_in", "prompt"]),
   title: z.string().trim().min(1, "Title is required"),
   description: z.string().trim().max(300).optional(),
+  frequency: z.enum(["daily", "weekly", "biweekly", "monthly"]).optional(),
   questions: z.array(questionSchema).min(1, "Add at least one question"),
 });
 export type TemplateInput = z.infer<typeof templateSchema>;

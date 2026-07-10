@@ -1,4 +1,4 @@
--- Luma: blog (Milestone 6)
+-- Tribe Works: blog (Milestone 6)
 -- Therapist-only publishing. No comments, no reactions, no client posting.
 
 create table public.blog_posts (

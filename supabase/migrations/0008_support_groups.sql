@@ -1,4 +1,4 @@
--- Luma: support groups & announcements (Milestone 10)
+-- Tribe Works: support groups & announcements (Milestone 10)
 -- No forum, no chat, no client-to-client discussion — therapist-managed
 -- meeting info and announcements only.
 

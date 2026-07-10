@@ -21,9 +21,9 @@ export default async function DashboardPage() {
   return (
     <div>
       <h1 className="font-display text-2xl mb-1">Overview</h1>
-      <p className="text-sm text-ink-muted mb-8">A quick look at your practice on Luma.</p>
+      <p className="text-sm text-ink-muted mb-8">A quick look at your practice on Tribe Works.</p>
 
-      <div className="grid grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         <Card className="p-5">
           <p className="eyebrow mb-1">Active clients</p>
           <p className="font-display text-3xl">{clientCount ?? 0}</p>

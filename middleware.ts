@@ -73,6 +73,42 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // Terms & conditions gate: clients must re-accept every 30 days, and
+  // immediately whenever Samara edits the text (which bumps the version).
+  // Exempt: the accept-terms page itself, the therapist dashboard, and
+  // anything already covered by isPublicPath above.
+  if (
+    user &&
+    !pathname.startsWith("/dashboard") &&
+    pathname !== "/accept-terms" &&
+    !isPublicPath(pathname)
+  ) {
+    const { data: profile } = await supabase.from("users").select("role").eq("id", user.id).single();
+
+    if (profile?.role === "client") {
+      const { data: terms } = await supabase.from("terms_content").select("version").single();
+      const currentVersion = terms?.version ?? 1;
+
+      const { data: latestAcceptance } = await supabase
+        .from("terms_acceptances")
+        .select("version, accepted_at")
+        .eq("client_id", user.id)
+        .order("accepted_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+      const isCurrent =
+        latestAcceptance &&
+        latestAcceptance.version === currentVersion &&
+        new Date(latestAcceptance.accepted_at).getTime() > thirtyDaysAgo;
+
+      if (!isCurrent) {
+        return NextResponse.redirect(new URL("/accept-terms", request.url));
+      }
+    }
+  }
+
   return response;
 }
 

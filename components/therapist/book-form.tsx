@@ -68,7 +68,7 @@ export function BookForm({ onDone }: { onDone: () => void }) {
       </div>
 
       <form onSubmit={handleSubmit} noValidate>
-        <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
           <div>
             <Label htmlFor="title">Title</Label>
             <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} />
@@ -79,7 +79,7 @@ export function BookForm({ onDone }: { onDone: () => void }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
           <div>
             <Label htmlFor="cover">Cover image URL</Label>
             <Input

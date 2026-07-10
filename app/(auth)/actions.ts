@@ -102,8 +102,7 @@ export async function acceptInvitation(
   });
 
   if (signUpError || !signUpData.user) {
-    console.error("joinWithCode signUp error:", signUpError);
-    return { error: "Couldn't create your account. Try again." };
+    return { error: "Couldn't create your account. Contact your therapist." };
   }
 
   const { error: acceptError } = await supabase.rpc("accept_invitation", {

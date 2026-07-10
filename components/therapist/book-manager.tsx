@@ -18,7 +18,7 @@ interface Book {
 function BookRow({ book }: { book: Book }) {
   const [isPending, startTransition] = useTransition();
   return (
-    <Card className="flex items-center justify-between">
+    <Card className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <div>
         <p className="font-medium text-ink">{book.title}</p>
         <p className="text-sm text-ink-muted">

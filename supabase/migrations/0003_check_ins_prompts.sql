@@ -1,4 +1,4 @@
--- Luma: check-ins & prompts (Milestone 4)
+-- Tribe Works: check-ins & prompts (Milestone 4)
 --
 -- The spec describes CheckInTemplates/CheckInResponses and separate
 -- PromptTemplates/PromptResponses, but both are the same shape: a

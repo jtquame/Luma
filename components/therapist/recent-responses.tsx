@@ -18,7 +18,7 @@ function ResponseRow({ r }: { r: ResponseSummary }) {
   const [isPending, startTransition] = useTransition();
 
   return (
-    <Card className="flex items-center justify-between">
+    <Card className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <div>
         <p className="text-sm font-medium text-ink">
           {r.clientName} <span className="text-ink-muted font-normal">— {r.templateTitle}</span>

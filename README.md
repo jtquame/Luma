@@ -1,4 +1,4 @@
-# Luma
+# Tribe Works
 
 A private client portal for Tribe Works Behavioral Services — Samara Lynch's
 one-therapist, invite-only practice. Clients complete structured check-ins,
@@ -110,28 +110,61 @@ supabase/migrations/   SQL migrations, applied in order
 
 ## Status
 
-All core spec sections are implemented end to end:
+All core spec sections are implemented end to end, plus a full round of
+changes from Samara's feedback:
 
-- **Auth**: invite-only signup, login, password reset, session middleware,
-  role gating, one-therapist-enforced-at-the-DB-level.
-- **Client management**: invite, revoke, deactivate/reactivate, audit-logged.
-- **Check-ins & prompts**: structured-only questions (no blank journaling),
-  one check-in per client per day, server-side answer validation, therapist
-  response review with mark-reviewed.
-- **Blog**: publish/unpublish/delete, client list + detail pages, no
-  comments or reactions.
-- **Book library**: status (recommended/optional/advanced), categories,
-  Amazon links, client browsing view.
-- **What I'm currently reading**: single personal entry, shown on the
-  client home page.
-- **Webinars**: upcoming vs. past/on-demand, per-client completion
-  tracking.
-- **Support groups & announcements**: meeting details, recurring flag,
-  therapist-posted announcements — no forum, no chat.
-- **Settings**: practice name, client-facing welcome message, session
-  timeout.
+- **Check-in cadence**: therapist sets daily/weekly/biweekly/monthly per
+  check-in; eligibility is computed from the client's last submission
+  instead of a hardcoded "once a day" rule.
+- **Skill building & reflections**: per-client assignments (distinct from
+  the broadcast-to-everyone check-ins/prompts) with an optional capped-
+  length reflection question. Client gets an email when one is posted (if
+  Resend is configured — otherwise the assignment still saves, just no
+  email).
+- **Editing**: blog posts and webinars can now be edited after creation,
+  not just created/deleted.
+- **Webinar images**: thumbnail URL field on the webinar form, shown on
+  the client-facing page.
+- **Support groups vs. announcements**: split into two separate tabs on
+  both the therapist and client side (previously combined on one page).
+- **"What Samara's reading" removed**: dropped from the client home page
+  and Settings. The book *library* (recommendations) is untouched — this
+  only removed the separate personal "currently reading" feature. The
+  underlying `currently_reading` table is still in the schema, just
+  unused by the UI.
+- **Client home page**: now shows only Today's check-in, Latest blog,
+  What's assigned, and Announcements — no book/support-group cards.
+- **Client nav reorder**: Home, Skill building, Check-in, Webinars,
+  Support groups, Announcements, Books, Blog (Samara's requested order
+  didn't specify where Blog/Announcements land, so they were placed last
+  and next to Support groups respectively — flag if that's not right).
+- **Home page tone**: "Welcome back" removed, "Hi, {name}" stays. The
+  green breathing-orb graphic is replaced with a random short (≤10 word)
+  empowering quote, re-picked on every page load (`lib/quotes.ts`).
+- **Disclaimer footer**: "This isn't a replacement for therapy — only a
+  resource in addition to sessions" now appears on every page (client,
+  therapist, and auth layouts).
+- **Terms & conditions**: therapist has a dedicated editable page
+  (`/dashboard/terms`) with per-client acceptance status. Clients are
+  redirected to `/accept-terms` if they haven't accepted the *current*
+  version within the last 30 days — editing the terms text bumps the
+  version automatically, which immediately forces everyone to re-sign
+  even if they accepted recently.
+- **Mobile layout**: therapist sidebar and client top nav both collapse
+  into a hamburger-triggered drawer below the `md`/`lg` breakpoint instead
+  of squishing. Fixed-width grids and side-by-side form rows across the
+  app (dashboard stats, book/blog/webinar forms, client/response rows,
+  the question builder) now stack on narrow screens instead of
+  overflowing. This covers the main flows — worth an actual walkthrough
+  on a phone before calling it fully done, since a few less-common screens
+  weren't individually tested.
+- **Grammar/capitalization**: spot-checked visible copy during this pass,
+  not an exhaustive line-by-line audit — flag anything specific you spot
+  and it's a fast fix.
 
-Not yet done: the full accessibility/design polish pass (dark mode toggle,
-keyboard-nav audit, WCAG contrast check), response CSV/PDF download,
-printable calendar for support groups, and production deploy hardening
-beyond what's in next.config.mjs and middleware.ts.
+Migrations added this round: `0010_assignments.sql`,
+`0011_checkin_cadence.sql`, `0012_terms.sql` — run these after `0009` in
+order, same as before.
+
+Not yet done: response CSV/PDF export, printable support-group calendar,
+and a full WCAG contrast/keyboard-nav audit.

@@ -1,4 +1,4 @@
-# Luma Design Tokens
+# Tribe Works Design Tokens
 
 Calm, personal, therapeutic — not a SaaS dashboard, not clinical. The app should
 feel like a quiet, well-kept room, not a control panel.

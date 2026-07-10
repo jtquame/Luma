@@ -11,7 +11,9 @@ export default async function ClientWebinarsPage() {
 
   const { data: webinars } = await supabase
     .from("webinars")
-    .select("id, title, description, speaker, video_url, scheduled_at, length_minutes, registration_url")
+    .select(
+      "id, title, description, speaker, video_url, thumbnail_url, scheduled_at, length_minutes, registration_url"
+    )
     .order("scheduled_at", { ascending: true, nullsFirst: true });
 
   const { data: completions } = await supabase
@@ -29,39 +31,49 @@ export default async function ClientWebinarsPage() {
   function WebinarCard({ w }: { w: (typeof upcoming)[number] }) {
     return (
       <Card key={w.id}>
-        <div className="flex items-start justify-between">
-          <div>
-            <h3 className="font-display text-lg mb-1">{w.title}</h3>
-            <p className="eyebrow mb-2">
-              {w.speaker ?? "Tribe Works Behavioral Services"}
-              {w.scheduled_at && ` · ${format(new Date(w.scheduled_at), "MMM d, yyyy 'at' h:mm a")}`}
-              {w.length_minutes && ` · ${w.length_minutes} min`}
-            </p>
-            {w.description && <p className="text-sm text-ink-muted mb-3">{w.description}</p>}
+        <div className="flex flex-col sm:flex-row items-start gap-4">
+          {w.thumbnail_url && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={w.thumbnail_url}
+              alt=""
+              className="w-full sm:w-32 h-32 sm:h-20 object-cover rounded-lg shrink-0"
+            />
+          )}
+          <div className="flex-1 flex items-start justify-between gap-4 w-full">
+            <div>
+              <h3 className="font-display text-lg mb-1">{w.title}</h3>
+              <p className="eyebrow mb-2">
+                {w.speaker ?? "Tribe Works Behavioral Services"}
+                {w.scheduled_at && ` · ${format(new Date(w.scheduled_at), "MMM d, yyyy 'at' h:mm a")}`}
+                {w.length_minutes && ` · ${w.length_minutes} min`}
+              </p>
+              {w.description && <p className="text-sm text-ink-muted mb-3">{w.description}</p>}
+              {w.video_url && (
+                <a
+                  href={w.video_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-accent hover:underline"
+                >
+                  Watch now
+                </a>
+              )}
+              {w.registration_url && !w.video_url && (
+                <a
+                  href={w.registration_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-accent hover:underline"
+                >
+                  Register
+                </a>
+              )}
+            </div>
             {w.video_url && (
-              <a
-                href={w.video_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-accent hover:underline"
-              >
-                Watch now
-              </a>
-            )}
-            {w.registration_url && !w.video_url && (
-              <a
-                href={w.registration_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-accent hover:underline"
-              >
-                Register
-              </a>
+              <CompleteButton webinarId={w.id} isComplete={completedIds.has(w.id)} />
             )}
           </div>
-          {w.video_url && (
-            <CompleteButton webinarId={w.id} isComplete={completedIds.has(w.id)} />
-          )}
         </div>
       </Card>
     );

@@ -22,7 +22,7 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Luma | Tribe Works Behavioral Services",
+  title: "Tribe Works Behavioral Services",
   description:
     "A private client portal for Tribe Works Behavioral Services — check-ins, resources, and support between sessions.",
   robots: { index: false, follow: false }, // invite-only, never indexed

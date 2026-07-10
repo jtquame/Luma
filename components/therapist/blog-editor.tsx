@@ -2,20 +2,35 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { createBlogPost } from "@/app/(therapist)/blog-actions";
+import { createBlogPost, updateBlogPost } from "@/app/(therapist)/blog-actions";
 import { blogPostSchema } from "@/lib/validations/blog";
 import { Card } from "@/components/ui/card";
 import { Input, Label, FieldError } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 
-export function BlogEditor({ onDone }: { onDone: () => void }) {
+interface ExistingPost {
+  id: string;
+  title: string;
+  excerpt: string | null;
+  category: string | null;
+  cover_image_url: string | null;
+  body: string;
+}
+
+export function BlogEditor({
+  onDone,
+  existingPost,
+}: {
+  onDone: () => void;
+  existingPost?: ExistingPost;
+}) {
   const router = useRouter();
-  const [title, setTitle] = useState("");
-  const [excerpt, setExcerpt] = useState("");
-  const [category, setCategory] = useState("");
-  const [coverImageUrl, setCoverImageUrl] = useState("");
-  const [body, setBody] = useState("");
+  const [title, setTitle] = useState(existingPost?.title ?? "");
+  const [excerpt, setExcerpt] = useState(existingPost?.excerpt ?? "");
+  const [category, setCategory] = useState(existingPost?.category ?? "");
+  const [coverImageUrl, setCoverImageUrl] = useState(existingPost?.cover_image_url ?? "");
+  const [body, setBody] = useState(existingPost?.body ?? "");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -34,7 +49,9 @@ export function BlogEditor({ onDone }: { onDone: () => void }) {
       return;
     }
     startTransition(async () => {
-      const result = await createBlogPost(parsed.data);
+      const result = existingPost
+        ? await updateBlogPost(existingPost.id, parsed.data)
+        : await createBlogPost(parsed.data);
       if (result.error) {
         setError(result.error);
       } else {
@@ -47,7 +64,7 @@ export function BlogEditor({ onDone }: { onDone: () => void }) {
   return (
     <Card className="mb-8">
       <div className="flex items-center justify-between mb-5">
-        <h2 className="font-display text-lg">New post</h2>
+        <h2 className="font-display text-lg">{existingPost ? "Edit post" : "New post"}</h2>
         <button onClick={onDone} className="text-ink-muted hover:text-ink" aria-label="Close">
           <X size={18} />
         </button>
@@ -57,7 +74,7 @@ export function BlogEditor({ onDone }: { onDone: () => void }) {
         <Label htmlFor="title">Title</Label>
         <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} />
       </div>
-      <div className="grid grid-cols-2 gap-3 mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
         <div>
           <Label htmlFor="category">Category</Label>
           <Input

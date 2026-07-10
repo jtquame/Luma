@@ -12,17 +12,19 @@ export function BlogPostRow({
   category,
   isPublished,
   publishedAt,
+  onEdit,
 }: {
   id: string;
   title: string;
   category: string | null;
   isPublished: boolean;
   publishedAt: string | null;
+  onEdit: () => void;
 }) {
   const [isPending, startTransition] = useTransition();
 
   return (
-    <Card className="flex items-center justify-between">
+    <Card className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <div>
         <div className="flex items-center gap-2">
           <p className="font-medium text-ink">{title}</p>
@@ -38,7 +40,10 @@ export function BlogPostRow({
             ` · published ${formatDistanceToNow(new Date(publishedAt), { addSuffix: true })}`}
         </p>
       </div>
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-wrap">
+        <Button variant="ghost" size="sm" onClick={onEdit}>
+          Edit
+        </Button>
         <Button
           variant="ghost"
           size="sm"

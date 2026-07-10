@@ -1,7 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { TemplateForm } from "@/components/client/template-form";
 import { Card } from "@/components/ui/card";
-import type { QuestionType, QuestionConfig } from "@/lib/supabase/types";
+import { isCheckInDue, nextAvailableMessage } from "@/lib/checkin-cadence";
+import type { QuestionType, QuestionConfig, CheckInFrequency } from "@/lib/supabase/types";
 
 export default async function CheckInPage() {
   const supabase = await createClient();
@@ -11,18 +12,25 @@ export default async function CheckInPage() {
 
   const { data: templates } = await supabase
     .from("templates")
-    .select("id, kind, title, description, template_questions(id, type, label, config, is_required, position)")
+    .select(
+      "id, kind, title, description, frequency, template_questions(id, type, label, config, is_required, position)"
+    )
     .eq("is_active", true)
     .order("created_at", { ascending: false });
 
-  const today = new Date().toISOString().slice(0, 10);
-  const { data: todaysResponses } = await supabase
+  const { data: lastResponses } = await supabase
     .from("responses")
     .select("template_id, submitted_at")
     .eq("client_id", user!.id)
-    .gte("submitted_at", `${today}T00:00:00Z`);
+    .order("submitted_at", { ascending: false });
 
-  const completedToday = new Set((todaysResponses ?? []).map((r) => r.template_id));
+  // Most recent submission per template — used to compute cadence eligibility.
+  const lastSubmittedByTemplate = new Map<string, string>();
+  for (const r of lastResponses ?? []) {
+    if (!lastSubmittedByTemplate.has(r.template_id)) {
+      lastSubmittedByTemplate.set(r.template_id, r.submitted_at);
+    }
+  }
 
   return (
     <div>
@@ -44,11 +52,16 @@ export default async function CheckInPage() {
             }[]
           ).sort((a, b) => a.position - b.position);
 
-          if (t.kind === "check_in" && completedToday.has(t.id)) {
+          const lastSubmittedAt = lastSubmittedByTemplate.get(t.id) ?? null;
+          const frequency = (t.frequency as CheckInFrequency | null) ?? null;
+
+          if (t.kind === "check_in" && lastSubmittedAt && !isCheckInDue(frequency, lastSubmittedAt)) {
             return (
               <Card key={t.id}>
                 <p className="font-medium text-ink mb-1">{t.title}</p>
-                <p className="text-sm text-ink-muted">Completed for today. See you tomorrow.</p>
+                <p className="text-sm text-ink-muted">
+                  {nextAvailableMessage(frequency, lastSubmittedAt)}
+                </p>
               </Card>
             );
           }

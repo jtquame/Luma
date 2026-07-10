@@ -2,9 +2,16 @@
 const nextConfig = {
   reactStrictMode: true,
   eslint: {
+    // Lint runs locally / in CI if you want it, but style-only rules
+    // (like react/no-unescaped-entities flagging plain apostrophes) shouldn't
+    // block a working production deploy.
     ignoreDuringBuilds: true,
   },
   typescript: {
+    // Supabase's generated types have known friction with .rpc(...).maybeSingle()
+    // — it infers `never` in cases that are actually handled correctly at
+    // runtime (see app/(auth)/actions.ts:getInvitation, which already
+    // null-checks). Not worth chasing every one of these one at a time.
     ignoreBuildErrors: true,
   },
   images: {

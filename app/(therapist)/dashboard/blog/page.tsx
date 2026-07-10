@@ -5,7 +5,7 @@ export default async function TherapistBlogPage() {
   const supabase = await createClient();
   const { data: posts } = await supabase
     .from("blog_posts")
-    .select("id, title, category, is_published, published_at")
+    .select("id, title, excerpt, category, cover_image_url, body, is_published, published_at")
     .order("created_at", { ascending: false });
 
   return (

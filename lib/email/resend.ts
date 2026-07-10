@@ -1,5 +1,11 @@
 import { Resend } from "resend";
 
+// Lazily created — this file gets bundled even though the email-invite flow
+// is currently unused (onboarding is access-code based, see /join). If we
+// created the client at module load time, having no RESEND_API_KEY set
+// would crash on import alone, before anything ever tries to send an
+// email. Only instantiate it, and only require the key, when actually
+// sending.
 function getResendClient() {
   if (!process.env.RESEND_API_KEY) {
     throw new Error(
@@ -26,12 +32,12 @@ export async function sendInvitationEmail({
   await resend.emails.send({
     from: FROM,
     to,
-    subject: "You're invited to Luma",
+    subject: "You're invited to Tribe Works",
     html: `
       <div style="font-family: 'Work Sans', Arial, sans-serif; max-width: 480px; margin: 0 auto; color: #26261F;">
         <h1 style="font-family: Georgia, serif; font-size: 22px; color: #26261F;">Hi ${firstName},</h1>
         <p style="font-size: 15px; line-height: 1.6;">
-          Samara has set up a private space for you on Luma — a place to
+          Samara has set up a private space for you on Tribe Works — a place to
           check in between sessions, and find the resources she's shared
           with you.
         </p>
@@ -44,6 +50,39 @@ export async function sendInvitationEmail({
         <p style="font-size: 13px; color: #6E6A5A;">
           This link expires in 7 days. If you weren't expecting this invite,
           you can ignore this email.
+        </p>
+      </div>
+    `,
+  });
+}
+
+export async function sendAssignmentEmail({
+  to,
+  firstName,
+  title,
+}: {
+  to: string;
+  firstName: string;
+  title: string;
+}) {
+  const resend = getResendClient();
+  const link = `${process.env.NEXT_PUBLIC_SITE_URL}/skill-building`;
+
+  await resend.emails.send({
+    from: FROM,
+    to,
+    subject: "A new assignment from Samara",
+    html: `
+      <div style="font-family: 'Work Sans', Arial, sans-serif; max-width: 480px; margin: 0 auto; color: #26261F;">
+        <h1 style="font-family: Georgia, serif; font-size: 22px; color: #26261F;">Hi ${firstName},</h1>
+        <p style="font-size: 15px; line-height: 1.6;">
+          Samara posted a new assignment for you: <strong>${title}</strong>.
+        </p>
+        <p style="margin: 28px 0;">
+          <a href="${link}" style="background:#57612F;color:#F7F1E6;padding:12px 24px;
+             border-radius:8px;text-decoration:none;font-size:15px;display:inline-block;">
+            View assignment
+          </a>
         </p>
       </div>
     `,

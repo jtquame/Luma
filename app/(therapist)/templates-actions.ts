@@ -38,6 +38,7 @@ export async function createTemplate(input: TemplateInput): Promise<ActionResult
       kind: parsed.data.kind,
       title: parsed.data.title,
       description: parsed.data.description || null,
+      frequency: parsed.data.kind === "check_in" ? parsed.data.frequency ?? "daily" : null,
       created_by: user.id,
     })
     .select("id")
