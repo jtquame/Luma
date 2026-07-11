@@ -65,7 +65,7 @@ export async function submitResponse(input: SubmitResponseInput): Promise<Submit
 
   const { data: questions, error: questionsError } = await supabase
     .from("template_questions")
-    .select("id, type, config, is_required")
+    .select("id, type, label, config, is_required")
     .eq("template_id", parsed.data.templateId);
 
   if (questionsError || !questions) {
@@ -98,9 +98,12 @@ export async function submitResponse(input: SubmitResponseInput): Promise<Submit
     return { error: "Couldn't submit your response. Try again." };
   }
 
+  const questionLabelById = new Map((questions ?? []).map((q) => [q.id, q.label]));
+
   const rows = parsed.data.answers.map((a) => ({
     response_id: response.id,
     question_id: a.questionId,
+    question_label: questionLabelById.get(a.questionId) ?? "Question",
     value: a.value,
   }));
 

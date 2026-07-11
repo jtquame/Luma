@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { setTemplateActive } from "@/app/(therapist)/templates-actions";
+import { deleteTemplate } from "@/app/(therapist)/templates-actions";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { CheckInAssignmentPanel } from "./checkin-assignment-panel";
-import { Users } from "lucide-react";
+import { Users, Trash2 } from "lucide-react";
 
 interface ClientOption {
   id: string;
@@ -16,7 +16,6 @@ export function TemplateRow({
   id,
   title,
   description,
-  isActive,
   questionCount,
   responseCount,
   kind,
@@ -26,7 +25,6 @@ export function TemplateRow({
   id: string;
   title: string;
   description: string | null;
-  isActive: boolean;
   questionCount: number;
   responseCount: number;
   kind: "check_in" | "prompt";
@@ -40,14 +38,7 @@ export function TemplateRow({
     <Card>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <div className="flex items-center gap-2">
-            <p className="font-medium text-ink">{title}</p>
-            {!isActive && (
-              <span className="rounded-full bg-border px-2 py-0.5 text-xs text-ink-muted">
-                Archived
-              </span>
-            )}
-          </div>
+          <p className="font-medium text-ink">{title}</p>
           {description && <p className="text-sm text-ink-muted mt-0.5">{description}</p>}
           <p className="eyebrow mt-2">
             {questionCount} question{questionCount === 1 ? "" : "s"} · {responseCount} response
@@ -63,14 +54,18 @@ export function TemplateRow({
               <Users size={14} /> {showAssign ? "Hide" : "Assign clients"}
             </Button>
           )}
-          <Button
-            variant="ghost"
-            size="sm"
+          <button
             disabled={isPending}
-            onClick={() => startTransition(() => setTemplateActive(id, !isActive))}
+            onClick={() => {
+              if (confirm(`Delete "${title}"? This can't be undone.`)) {
+                startTransition(() => deleteTemplate(id));
+              }
+            }}
+            className="text-ink-muted hover:text-danger p-2"
+            aria-label="Delete"
           >
-            {isActive ? "Archive" : "Reactivate"}
-          </Button>
+            <Trash2 size={17} />
+          </button>
         </div>
       </div>
 

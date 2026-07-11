@@ -153,7 +153,7 @@ export interface Database {
       responses: {
         Row: {
           id: string;
-          template_id: string;
+          template_id: string | null;
           client_id: string;
           submitted_at: string;
           reviewed_at: string | null;
@@ -175,12 +175,14 @@ export interface Database {
         Row: {
           id: string;
           response_id: string;
-          question_id: string;
+          question_id: string | null;
+          question_label: string | null;
           value: AnswerValue;
         };
         Insert: {
           response_id: string;
           question_id: string;
+          question_label: string;
           value: AnswerValue;
         };
         Update: never;

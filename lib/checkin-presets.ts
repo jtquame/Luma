@@ -11,6 +11,12 @@ export interface CheckInPreset {
 // A starter library — add one with a click instead of building question by
 // question. Once added, each behaves exactly like a manually-built
 // check-in: it follows its cadence automatically, no further action needed.
+//
+// Structured questions only — no free-text write-in fields (no
+// short_reflection type). Anywhere a preset previously had an open-ended
+// question, it's been replaced with a structured equivalent (multiple
+// choice, checkboxes, or a scale) that captures similar ground without a
+// blank box.
 export const CHECKIN_PRESETS: CheckInPreset[] = [
   {
     id: "daily-mood",
@@ -37,12 +43,6 @@ export const CHECKIN_PRESETS: CheckInPreset[] = [
         isRequired: false,
         options: ["Deep breathing", "Walking", "Journaling", "Meditation", "Talking to someone", "None"],
       },
-      {
-        type: "short_reflection",
-        label: "Anything on your mind? (optional)",
-        isRequired: false,
-        maxLength: 250,
-      },
     ],
   },
   {
@@ -64,10 +64,10 @@ export const CHECKIN_PRESETS: CheckInPreset[] = [
         isRequired: true,
       },
       {
-        type: "short_reflection",
+        type: "multi_choice",
         label: "What tended to trigger it, if anything?",
         isRequired: false,
-        maxLength: 250,
+        options: ["Work/school", "Relationships", "Health", "Finances", "Social situations", "Uncertain/unclear", "Nothing in particular"],
       },
     ],
   },
@@ -78,10 +78,10 @@ export const CHECKIN_PRESETS: CheckInPreset[] = [
     frequency: "weekly",
     questions: [
       {
-        type: "short_reflection",
-        label: "What's one thing you're grateful for this week?",
+        type: "single_choice",
+        label: "What area of your life felt most positive this week?",
         isRequired: true,
-        maxLength: 250,
+        options: ["Relationships", "Work/school", "Health", "Personal growth", "Home life", "Something else"],
       },
       {
         type: "scale",
@@ -106,16 +106,17 @@ export const CHECKIN_PRESETS: CheckInPreset[] = [
         max: 5,
       },
       {
-        type: "short_reflection",
+        type: "multi_choice",
         label: "What's felt hardest lately?",
         isRequired: false,
-        maxLength: 300,
+        options: ["Motivation", "Sleep", "Relationships", "Work/school", "Finances", "Health", "None of these"],
       },
       {
-        type: "short_reflection",
-        label: "What's felt easier or more manageable lately?",
-        isRequired: false,
-        maxLength: 300,
+        type: "scale",
+        label: "How manageable has your routine felt overall?",
+        isRequired: true,
+        min: 1,
+        max: 5,
       },
     ],
   },
@@ -139,10 +140,10 @@ export const CHECKIN_PRESETS: CheckInPreset[] = [
         options: ["Very stable", "Mostly stable", "Somewhat unstable", "Very unstable"],
       },
       {
-        type: "short_reflection",
+        type: "multi_choice",
         label: "What would you like to focus on next month?",
         isRequired: false,
-        maxLength: 300,
+        options: ["Self-care", "Relationships", "Work/career", "Health", "Finances", "Personal growth", "Something else"],
       },
     ],
   },

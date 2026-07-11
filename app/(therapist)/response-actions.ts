@@ -17,7 +17,7 @@ export async function getResponseDetail(
   // back empty rather than erroring, which is exactly the signal we want.
   const { data: answers, error } = await supabase
     .from("response_answers")
-    .select("value, template_questions(label, position)")
+    .select("value, question_label")
     .eq("response_id", responseId);
 
   if (error) return { items: [], error: "Couldn't load that response." };
@@ -26,21 +26,17 @@ export async function getResponseDetail(
     return { items: [], error: "not_shared" };
   }
 
-  const items = answers
-    .map((a) => {
-      const q = a.template_questions as unknown as { label: string; position: number };
-      const value = a.value;
-      const answerText = Array.isArray(value)
-        ? value.join(", ")
-        : typeof value === "boolean"
-          ? value
-            ? "Yes"
-            : "No"
-          : String(value);
-      return { question: q?.label ?? "Question", answer: answerText, position: q?.position ?? 0 };
-    })
-    .sort((a, b) => a.position - b.position)
-    .map(({ question, answer }) => ({ question, answer }));
+  const items = answers.map((a) => {
+    const value = a.value;
+    const answerText = Array.isArray(value)
+      ? value.join(", ")
+      : typeof value === "boolean"
+        ? value
+          ? "Yes"
+          : "No"
+        : String(value);
+    return { question: a.question_label ?? "Question", answer: answerText };
+  });
 
   return { items, error: null };
 }

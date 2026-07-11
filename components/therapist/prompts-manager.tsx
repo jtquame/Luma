@@ -83,7 +83,6 @@ export function PromptsManager({
                 id={t.id}
                 title={t.title}
                 description={t.description}
-                isActive={t.is_active}
                 questionCount={t.questionCount}
                 responseCount={t.responseCount}
                 kind="check_in"
@@ -107,7 +106,6 @@ export function PromptsManager({
                 id={t.id}
                 title={t.title}
                 description={t.description}
-                isActive={t.is_active}
                 questionCount={t.questionCount}
                 responseCount={t.responseCount}
                 kind="prompt"

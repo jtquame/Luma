@@ -109,6 +109,23 @@ export async function setTemplateActive(
   return { error: null };
 }
 
+export async function deleteTemplate(templateId: string): Promise<ActionResult> {
+  const { supabase, user } = await requireTherapist();
+
+  const { error } = await supabase.from("templates").delete().eq("id", templateId);
+  if (error) return { error: "Couldn't delete that. Try again." };
+
+  await supabase.from("audit_log").insert({
+    actor_id: user.id,
+    action: "template.deleted",
+    target_type: "template",
+    target_id: templateId,
+  });
+
+  revalidatePath("/dashboard/prompts");
+  return { error: null };
+}
+
 export async function markResponseReviewed(responseId: string): Promise<ActionResult> {
   const { supabase, user } = await requireTherapist();
 

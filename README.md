@@ -166,7 +166,8 @@ Migrations added this round: `0010_assignments.sql`,
 `0011_checkin_cadence.sql`, `0012_terms.sql`, `0013_image_storage.sql`,
 `0014_attachments_and_preferences.sql`, `0015_pathways.sql`,
 `0016_assignment_library.sql`, `0017_checkin_library.sql`,
-`0018_client_checkin_model.sql`, `0019_split_response_visibility.sql` —
+`0018_client_checkin_model.sql`, `0019_split_response_visibility.sql`,
+`0020_deletable_templates.sql` —
 run these after `0009` in order, same as before.
 
 ## Skill Building vs. Reflections (split)
@@ -276,3 +277,32 @@ Not yet done: response CSV/PDF export, printable support-group calendar,
 a full WCAG contrast/keyboard-nav audit, and editing an existing pathway
 after creation (currently create/archive/delete only, no edit — same
 pattern as check-in templates).
+
+## Starter templates: no write-in questions
+
+The five fixed starter check-ins no longer include any `short_reflection`
+(free-text) questions — each one that had a write-in field now uses a
+structured equivalent instead (multiple choice, checkboxes, or a scale)
+that covers similar ground without a blank box. This only touched the
+fixed starter list (`lib/checkin-presets.ts`); the question-type picker in
+the manual builder and in "Create your own" (custom library items) still
+includes short reflection as an option, since that's Samara's own
+authoring tool, not a starter template.
+
+## Check-ins/prompts: delete instead of archive
+
+The archive/reactivate toggle on check-ins and prompts is gone — deleting
+is now the only option. This needed a small schema change: response
+answers previously had a hard foreign-key link to the exact question they
+answered, which would have blocked deleting a template (or errored) the
+moment any client had responded to it. Two changes fixed that:
+
+- Each answer now stores a snapshot of the question's text at the moment
+  it was answered (`response_answers.question_label`), so a client's past
+  answers stay fully readable even after the original check-in is deleted.
+- `responses.template_id` and `response_answers.question_id` both switched
+  from a blocking foreign key to `ON DELETE SET NULL` — deleting a
+  template detaches old responses from it rather than destroying them or
+  refusing to let Samara delete it.
+
+Migration `0020_deletable_templates.sql`.
