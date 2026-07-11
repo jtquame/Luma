@@ -135,3 +135,79 @@ export async function addPresetTemplate(presetId: string): Promise<ActionResult>
     questions: preset.questions,
   });
 }
+
+export async function createLibraryCheckIn(input: TemplateInput): Promise<ActionResult> {
+  const parsed = templateSchema.safeParse({ ...input, kind: "check_in" });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+
+  const { supabase, user } = await requireTherapist();
+
+  const { error } = await supabase.from("checkin_library").insert({
+    title: parsed.data.title,
+    description: parsed.data.description || null,
+    frequency: parsed.data.frequency ?? "daily",
+    questions: parsed.data.questions,
+    created_by: user.id,
+  });
+
+  if (error) return { error: "Couldn't save to the library. Try again." };
+
+  revalidatePath("/dashboard/prompts");
+  return { error: null };
+}
+
+export async function deleteLibraryCheckIn(id: string): Promise<ActionResult> {
+  const { supabase } = await requireTherapist();
+  const { error } = await supabase.from("checkin_library").delete().eq("id", id);
+  if (error) return { error: "Couldn't delete that." };
+
+  revalidatePath("/dashboard/prompts");
+  return { error: null };
+}
+
+export async function addLibraryCheckInToLive(libraryId: string): Promise<ActionResult> {
+  const { supabase } = await requireTherapist();
+
+  const { data: item } = await supabase
+    .from("checkin_library")
+    .select("title, description, frequency, questions")
+    .eq("id", libraryId)
+    .single();
+
+  if (!item) return { error: "Couldn't find that library item." };
+
+  return createTemplate({
+    kind: "check_in",
+    title: item.title,
+    description: item.description ?? undefined,
+    frequency: item.frequency,
+    questions: item.questions as TemplateInput["questions"],
+  });
+}
+
+export async function setClientCheckInAssignment(
+  clientId: string,
+  templateId: string,
+  assigned: boolean
+): Promise<ActionResult> {
+  const { supabase } = await requireTherapist();
+
+  if (assigned) {
+    const { error } = await supabase
+      .from("client_checkin_assignments")
+      .insert({ client_id: clientId, template_id: templateId });
+    if (error && error.code !== "23505") return { error: "Couldn't assign that check-in." };
+  } else {
+    const { error } = await supabase
+      .from("client_checkin_assignments")
+      .delete()
+      .eq("client_id", clientId)
+      .eq("template_id", templateId);
+    if (error) return { error: "Couldn't unassign that check-in." };
+  }
+
+  revalidatePath("/dashboard/prompts");
+  revalidatePath("/check-in");
+  revalidatePath("/home");
+  return { error: null };
+}

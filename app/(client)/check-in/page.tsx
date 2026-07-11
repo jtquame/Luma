@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { TemplateForm } from "@/components/client/template-form";
-import { CheckInFrequencyPicker } from "@/components/client/checkin-frequency-picker";
+import { PreferredFrequencyPicker } from "@/components/client/preferred-frequency-picker";
 import { Card } from "@/components/ui/card";
 import { isCheckInDue, nextAvailableMessage } from "@/lib/checkin-cadence";
 import type { QuestionType, QuestionConfig, CheckInFrequency } from "@/lib/supabase/types";
@@ -11,13 +11,31 @@ export default async function CheckInPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: templates } = await supabase
+  const { data: profile } = await supabase
+    .from("users")
+    .select("preferred_checkin_frequency")
+    .eq("id", user!.id)
+    .single();
+
+  const preferredFrequency: CheckInFrequency = profile?.preferred_checkin_frequency ?? "daily";
+
+  // Only check-ins Samara has specifically assigned to this client.
+  const { data: assignments } = await supabase
+    .from("client_checkin_assignments")
+    .select(
+      "template_id, templates(id, kind, title, description, template_questions(id, type, label, config, is_required, position))"
+    )
+    .eq("client_id", user!.id);
+
+  // Prompts stay broadcast (unaffected by the assignment model) — every
+  // active prompt is visible to every client, same as before.
+  const { data: promptTemplates } = await supabase
     .from("templates")
     .select(
-      "id, kind, title, description, frequency, template_questions(id, type, label, config, is_required, position)"
+      "id, kind, title, description, template_questions(id, type, label, config, is_required, position)"
     )
-    .eq("is_active", true)
-    .order("created_at", { ascending: false });
+    .eq("kind", "prompt")
+    .eq("is_active", true);
 
   const { data: lastResponses } = await supabase
     .from("responses")
@@ -25,17 +43,6 @@ export default async function CheckInPage() {
     .eq("client_id", user!.id)
     .order("submitted_at", { ascending: false });
 
-  const { data: preferences } = await supabase
-    .from("client_template_preferences")
-    .select("template_id, frequency")
-    .eq("client_id", user!.id);
-
-  const preferenceByTemplate = new Map<string, CheckInFrequency>();
-  for (const p of preferences ?? []) {
-    preferenceByTemplate.set(p.template_id, p.frequency);
-  }
-
-  // Most recent submission per template — used to compute cadence eligibility.
   const lastSubmittedByTemplate = new Map<string, string>();
   for (const r of lastResponses ?? []) {
     if (!lastSubmittedByTemplate.has(r.template_id)) {
@@ -43,48 +50,50 @@ export default async function CheckInPage() {
     }
   }
 
+  const templates = (assignments ?? [])
+    .map((a) => a.templates)
+    .filter(
+      (t): t is NonNullable<typeof t> => t !== null
+    ) as unknown as {
+    id: string;
+    kind: string;
+    title: string;
+    description: string | null;
+    template_questions: {
+      id: string;
+      type: QuestionType;
+      label: string;
+      config: QuestionConfig;
+      is_required: boolean;
+      position: number;
+    }[];
+  }[];
+
+  const prompts = (promptTemplates ?? []) as unknown as typeof templates;
+
   return (
     <div>
-      <h1 className="font-display text-2xl mb-1">Check-in</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
+        <h1 className="font-display text-2xl">Check-in</h1>
+        <PreferredFrequencyPicker current={preferredFrequency} />
+      </div>
       <p className="text-sm text-ink-muted mb-8">
         A few minutes, structured questions only — nothing to write from scratch.
-        Change how often any check-in appears using "Remind me" on each one.
       </p>
 
       <div className="space-y-6">
-        {(templates ?? []).map((t) => {
-          const questions = (
-            t.template_questions as {
-              id: string;
-              type: QuestionType;
-              label: string;
-              config: QuestionConfig;
-              is_required: boolean;
-              position: number;
-            }[]
-          ).sort((a, b) => a.position - b.position);
-
+        <h2 className="eyebrow">Check-ins</h2>
+        {templates.map((t) => {
+          const questions = [...t.template_questions].sort((a, b) => a.position - b.position);
           const lastSubmittedAt = lastSubmittedByTemplate.get(t.id) ?? null;
-          const templateDefault = (t.frequency as CheckInFrequency | null) ?? "daily";
-          const effectiveFrequency = preferenceByTemplate.get(t.id) ?? templateDefault;
 
-          const picker =
-            t.kind === "check_in" ? (
-              <CheckInFrequencyPicker templateId={t.id} currentFrequency={effectiveFrequency} />
-            ) : undefined;
-
-          if (
-            t.kind === "check_in" &&
-            lastSubmittedAt &&
-            !isCheckInDue(effectiveFrequency, lastSubmittedAt)
-          ) {
+          if (lastSubmittedAt && !isCheckInDue(preferredFrequency, lastSubmittedAt)) {
             return (
               <Card key={t.id}>
                 <p className="font-medium text-ink mb-1">{t.title}</p>
-                <p className="text-sm text-ink-muted mb-3">
-                  {nextAvailableMessage(effectiveFrequency, lastSubmittedAt)}
+                <p className="text-sm text-ink-muted">
+                  {nextAvailableMessage(preferredFrequency, lastSubmittedAt)}
                 </p>
-                {picker}
               </Card>
             );
           }
@@ -96,17 +105,45 @@ export default async function CheckInPage() {
               title={t.title}
               description={t.description}
               questions={questions}
-              headerExtra={picker}
             />
           );
         })}
 
-        {(!templates || templates.length === 0) && (
+        {templates.length === 0 && (
           <Card>
             <p className="text-sm text-ink-muted">
               Nothing assigned yet — Samara will add your first check-in soon.
             </p>
           </Card>
+        )}
+
+        {prompts.length > 0 && (
+          <>
+            <h2 className="eyebrow pt-4">Prompts</h2>
+            {prompts.map((t) => {
+              const questions = [...t.template_questions].sort((a, b) => a.position - b.position);
+              const alreadyAnswered = lastSubmittedByTemplate.has(t.id);
+
+              if (alreadyAnswered) {
+                return (
+                  <Card key={t.id}>
+                    <p className="font-medium text-ink mb-1">{t.title}</p>
+                    <p className="text-sm text-ink-muted">Completed.</p>
+                  </Card>
+                );
+              }
+
+              return (
+                <TemplateForm
+                  key={t.id}
+                  templateId={t.id}
+                  title={t.title}
+                  description={t.description}
+                  questions={questions}
+                />
+              );
+            })}
+          </>
         )}
       </div>
     </div>

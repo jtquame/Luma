@@ -32,6 +32,7 @@ export interface Database {
           last_name: string;
           email: string;
           is_active: boolean;
+          preferred_checkin_frequency: CheckInFrequency;
           created_at: string;
           updated_at: string;
         };
@@ -42,6 +43,7 @@ export interface Database {
           last_name: string;
           email: string;
           is_active?: boolean;
+          preferred_checkin_frequency?: CheckInFrequency;
         };
         Update: Partial<Database["public"]["Tables"]["users"]["Insert"]>;
       };
@@ -156,14 +158,17 @@ export interface Database {
           submitted_at: string;
           reviewed_at: string | null;
           reviewed_by: string | null;
+          shared_with_therapist: boolean;
         };
         Insert: {
           template_id: string;
           client_id: string;
+          shared_with_therapist?: boolean;
         };
         Update: {
           reviewed_at?: string | null;
           reviewed_by?: string | null;
+          shared_with_therapist?: boolean;
         };
       };
       response_answers: {
@@ -388,6 +393,31 @@ export interface Database {
           frequency: CheckInFrequency;
         };
         Update: { frequency: CheckInFrequency };
+      };
+      client_checkin_assignments: {
+        Row: { client_id: string; template_id: string; assigned_at: string };
+        Insert: { client_id: string; template_id: string };
+        Update: never;
+      };
+      checkin_library: {
+        Row: {
+          id: string;
+          title: string;
+          description: string | null;
+          frequency: CheckInFrequency;
+          questions: unknown;
+          created_by: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          title: string;
+          description?: string | null;
+          frequency?: CheckInFrequency;
+          questions: unknown;
+          created_by: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["checkin_library"]["Insert"]>;
       };
       pathways: {
         Row: {

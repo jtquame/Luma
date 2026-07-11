@@ -13,31 +13,20 @@ export default async function ClientHomePage() {
 
   const { data: profile } = await supabase
     .from("users")
-    .select("first_name")
+    .select("first_name, preferred_checkin_frequency")
     .eq("id", user!.id)
     .single();
 
-  const { data: activeCheckIns } = await supabase
-    .from("templates")
-    .select("id, frequency")
-    .eq("kind", "check_in")
-    .eq("is_active", true);
+  const { data: assignedCheckIns } = await supabase
+    .from("client_checkin_assignments")
+    .select("template_id")
+    .eq("client_id", user!.id);
 
   const { data: lastResponses } = await supabase
     .from("responses")
     .select("template_id, submitted_at")
     .eq("client_id", user!.id)
     .order("submitted_at", { ascending: false });
-
-  const { data: preferences } = await supabase
-    .from("client_template_preferences")
-    .select("template_id, frequency")
-    .eq("client_id", user!.id);
-
-  const preferenceByTemplate = new Map<string, CheckInFrequency>();
-  for (const p of preferences ?? []) {
-    preferenceByTemplate.set(p.template_id, p.frequency);
-  }
 
   const lastSubmittedByTemplate = new Map<string, string>();
   for (const r of lastResponses ?? []) {
@@ -46,11 +35,11 @@ export default async function ClientHomePage() {
     }
   }
 
-  const pendingCount = (activeCheckIns ?? []).filter((t) => {
-    const last = lastSubmittedByTemplate.get(t.id) ?? null;
-    const effectiveFrequency =
-      preferenceByTemplate.get(t.id) ?? (t.frequency as CheckInFrequency | null) ?? "daily";
-    return isCheckInDue(effectiveFrequency, last);
+  const preferredFrequency: CheckInFrequency = profile?.preferred_checkin_frequency ?? "daily";
+
+  const pendingCount = (assignedCheckIns ?? []).filter((a) => {
+    const last = lastSubmittedByTemplate.get(a.template_id) ?? null;
+    return isCheckInDue(preferredFrequency, last);
   }).length;
 
   const { data: latestPost } = await supabase
@@ -86,7 +75,7 @@ export default async function ClientHomePage() {
         <Link href="/check-in">
           <Card className="hover:border-primary/40 transition-colors h-full">
             <p className="eyebrow mb-2">Today's check-in</p>
-            {!activeCheckIns || activeCheckIns.length === 0 ? (
+            {!assignedCheckIns || assignedCheckIns.length === 0 ? (
               <p className="text-sm text-ink-muted">
                 Not set up yet — Samara will assign your first check-in soon.
               </p>

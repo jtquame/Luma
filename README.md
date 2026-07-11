@@ -165,8 +165,9 @@ changes from Samara's feedback:
 Migrations added this round: `0010_assignments.sql`,
 `0011_checkin_cadence.sql`, `0012_terms.sql`, `0013_image_storage.sql`,
 `0014_attachments_and_preferences.sql`, `0015_pathways.sql`,
-`0016_assignment_library.sql` — run these after `0009` in order, same as
-before.
+`0016_assignment_library.sql`, `0017_checkin_library.sql`,
+`0018_client_checkin_model.sql`, `0019_split_response_visibility.sql` —
+run these after `0009` in order, same as before.
 
 ## Skill Building vs. Reflections (split)
 
@@ -218,25 +219,58 @@ authenticated users, since these are tied to a specific client's homework
 rather than general branding content). Client sees a download link on
 their assignment card.
 
-## Check-in cadence: client override + preset library
+## Check-in library: custom, not just fixed presets
 
-Two additions on top of the therapist-set default cadence:
+The "Add from library" panel on Check-ins & Prompts now has a "Create your
+own" option — Samara builds a check-in (title, description, frequency,
+questions, same question types as the manual builder) and it's saved to
+`checkin_library`, not made live immediately. From there it works exactly
+like the fixed starter templates: "Add" turns it into a real, live
+check-in. Saved custom items can be deleted from the library independent
+of any live check-ins already created from them.
 
-- **Client override**: each active check-in on `/check-in` has a small
-  "Remind me" dropdown letting a client pick their own frequency
-  (daily/weekly/biweekly/monthly), independent of whatever the therapist
-  set as the default. Stored in `client_template_preferences`; no row
-  means "use the template's default."
-- **Preset library**: "Add from library" on the Check-ins & prompts page
-  offers five ready-built check-ins (daily mood, weekly anxiety scale,
-  weekly gratitude, biweekly progress, monthly big-picture) that add in
-  one click instead of building question-by-question
-  (`lib/checkin-presets.ts`). Once added, they're indistinguishable from a
-  manually-built check-in — they follow their cadence automatically, no
-  further action needed. This was the reading I went with for "a list of
-  them so they can be automated"; if what was actually wanted is
-  different (e.g. scheduled push notifications, or something else
-  entirely), flag it and it can be adjusted.
+## Check-in model change: client-wide frequency + assigned (not broadcast)
+
+This replaced the earlier per-check-in override — it's a real behavior
+change worth knowing about:
+
+- **One frequency per client, not per check-in.** A client no longer picks
+  a different cadence for each check-in — they set one frequency
+  ("How often do you want check-ins?" on `/check-in`) that governs every
+  check-in they're given. `users.preferred_checkin_frequency`.
+- **Assigned, not broadcast.** Previously every active check-in showed up
+  for every client. Now Samara picks one or more specific check-ins for a
+  specific client via "Assign clients" on each check-in row (Check-ins &
+  Prompts page) — only assigned check-ins appear for that client.
+  `client_checkin_assignments`.
+- **Prompts are unaffected** — still one-off and broadcast to every
+  client (not part of this assignment model, since the request was
+  specifically about check-ins). They now also hide themselves once
+  answered, which they didn't reliably do before.
+- The earlier per-check-in override table (`client_template_preferences`)
+  and its picker component are superseded by this and no longer used by
+  any page, though the table is still in the schema.
+
+## Response visibility: always know they answered, content is opt-in
+
+Refined from an earlier pass — Samara can now always see **that** a client
+answered a check-in or prompt (which one, when, on the Check-ins & Prompts
+page), but the actual answer content is only visible if the client chose
+to share it. This is enforced as two separate RLS layers:
+
+- `responses` (the submission itself: who, which check-in, when) —
+  always visible to the therapist.
+- `response_answers` (the actual question-by-question content) — only
+  visible to the therapist when `responses.shared_with_therapist = true`.
+
+After answering, a client sees "Samara will see that you completed this
+either way. Want her to see your actual answers too, or keep those just
+for yourself?" On her side, each entry in "Recent responses" shows a
+Shared/Private badge, and expanding a shared one loads the actual
+question/answer pairs (`getResponseDetail` in
+`app/(therapist)/response-actions.ts`); expanding a private one just says
+they answered but haven't shared the details. Migration
+`0019_split_response_visibility.sql`.
 
 Not yet done: response CSV/PDF export, printable support-group calendar,
 a full WCAG contrast/keyboard-nav audit, and editing an existing pathway

@@ -5,12 +5,38 @@ import { RecentResponses } from "@/components/therapist/recent-responses";
 export default async function PromptsPage() {
   const supabase = await createClient();
 
-  const { data: templates } = await supabase
-    .from("templates")
-    .select(
-      "id, kind, title, description, is_active, template_questions(count), responses(count)"
-    )
-    .order("created_at", { ascending: false });
+  const [{ data: templates }, { data: clients }, { data: assignments }, { data: libraryItems }] =
+    await Promise.all([
+      supabase
+        .from("templates")
+        .select(
+          "id, kind, title, description, is_active, template_questions(count), responses(count)"
+        )
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("users")
+        .select("id, first_name, last_name")
+        .eq("role", "client")
+        .eq("is_active", true)
+        .order("first_name"),
+      supabase.from("client_checkin_assignments").select("client_id, template_id"),
+      supabase
+        .from("checkin_library")
+        .select("id, title, description, frequency, questions")
+        .order("title"),
+    ]);
+
+  const clientOptions = (clients ?? []).map((c) => ({
+    id: c.id,
+    name: `${c.first_name} ${c.last_name}`,
+  }));
+
+  const assignedClientsByTemplate = new Map<string, string[]>();
+  for (const a of assignments ?? []) {
+    const list = assignedClientsByTemplate.get(a.template_id) ?? [];
+    list.push(a.client_id);
+    assignedClientsByTemplate.set(a.template_id, list);
+  }
 
   const summarize = (rows: typeof templates) =>
     (rows ?? []).map((t) => ({
@@ -20,6 +46,7 @@ export default async function PromptsPage() {
       is_active: t.is_active,
       questionCount: (t.template_questions as unknown as { count: number }[])[0]?.count ?? 0,
       responseCount: (t.responses as unknown as { count: number }[])[0]?.count ?? 0,
+      assignedClientIds: assignedClientsByTemplate.get(t.id) ?? [],
     }));
 
   const checkIns = summarize(templates?.filter((t) => t.kind === "check_in"));
@@ -28,7 +55,7 @@ export default async function PromptsPage() {
   const { data: recentResponses } = await supabase
     .from("responses")
     .select(
-      "id, submitted_at, reviewed_at, templates(title), users!responses_client_id_fkey(first_name, last_name)"
+      "id, submitted_at, reviewed_at, shared_with_therapist, templates(title), users!responses_client_id_fkey(first_name, last_name)"
     )
     .order("submitted_at", { ascending: false })
     .limit(15);
@@ -42,6 +69,7 @@ export default async function PromptsPage() {
     })(),
     submittedAt: r.submitted_at,
     reviewedAt: r.reviewed_at,
+    shared: r.shared_with_therapist,
   }));
 
   return (
@@ -50,7 +78,12 @@ export default async function PromptsPage() {
       <p className="text-sm text-ink-muted mb-8">
         Build the structured questions your clients respond to.
       </p>
-      <PromptsManager checkIns={checkIns} prompts={prompts} />
+      <PromptsManager
+        checkIns={checkIns}
+        prompts={prompts}
+        clients={clientOptions}
+        libraryItems={libraryItems ?? []}
+      />
       <RecentResponses responses={responseSummaries} />
     </div>
   );

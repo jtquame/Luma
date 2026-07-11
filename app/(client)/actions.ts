@@ -6,6 +6,7 @@ import { submitResponseSchema, type SubmitResponseInput } from "@/lib/validation
 import type { QuestionConfig, AnswerValue } from "@/lib/supabase/types";
 
 type ActionResult = { error: string | null };
+type SubmitResult = { error: string | null; responseId?: string };
 
 function validateAnswer(
   type: string,
@@ -50,7 +51,7 @@ function validateAnswer(
   }
 }
 
-export async function submitResponse(input: SubmitResponseInput): Promise<ActionResult> {
+export async function submitResponse(input: SubmitResponseInput): Promise<SubmitResult> {
   const parsed = submitResponseSchema.safeParse(input);
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
@@ -110,5 +111,27 @@ export async function submitResponse(input: SubmitResponseInput): Promise<Action
 
   revalidatePath("/check-in");
   revalidatePath("/home");
+  return { error: null, responseId: response.id };
+}
+
+export async function setResponseShared(
+  responseId: string,
+  shared: boolean
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
+
+  const { error } = await supabase
+    .from("responses")
+    .update({ shared_with_therapist: shared })
+    .eq("id", responseId)
+    .eq("client_id", user.id);
+
+  if (error) return { error: "Couldn't save that. Try again." };
+
+  revalidatePath("/check-in");
   return { error: null };
 }

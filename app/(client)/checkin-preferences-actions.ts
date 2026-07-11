@@ -33,3 +33,31 @@ export async function setCheckInPreference(
   revalidatePath("/home");
   return { error: null };
 }
+
+const overallFrequencySchema = z.object({
+  frequency: z.enum(["daily", "weekly", "biweekly", "monthly"]),
+});
+
+export async function setPreferredCheckInFrequency(
+  input: z.infer<typeof overallFrequencySchema>
+): Promise<{ error: string | null }> {
+  const parsed = overallFrequencySchema.safeParse(input);
+  if (!parsed.success) return { error: "Invalid input" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
+
+  const { error } = await supabase
+    .from("users")
+    .update({ preferred_checkin_frequency: parsed.data.frequency })
+    .eq("id", user.id);
+
+  if (error) return { error: "Couldn't save your preference. Try again." };
+
+  revalidatePath("/check-in");
+  revalidatePath("/home");
+  return { error: null };
+}

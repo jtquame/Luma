@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { submitResponse } from "@/app/(client)/actions";
+import { submitResponse, setResponseShared } from "@/app/(client)/actions";
 import { QuestionField } from "./question-field";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -33,6 +33,8 @@ export function TemplateForm({
   const [answers, setAnswers] = useState<Record<string, AnswerValue>>({});
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  const [submittedResponseId, setSubmittedResponseId] = useState<string | null>(null);
+  const [sharingChoiceMade, setSharingChoiceMade] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   function handleSubmit(e: React.FormEvent) {
@@ -57,16 +59,54 @@ export function TemplateForm({
         setError(result.error);
       } else {
         setDone(true);
-        router.refresh();
+        setSubmittedResponseId(result.responseId ?? null);
       }
     });
   }
 
+  function handleShareChoice(shared: boolean) {
+    if (!submittedResponseId) {
+      setSharingChoiceMade(true);
+      router.refresh();
+      return;
+    }
+    startTransition(async () => {
+      await setResponseShared(submittedResponseId, shared);
+      setSharingChoiceMade(true);
+      router.refresh();
+    });
+  }
+
   if (done) {
+    if (!sharingChoiceMade) {
+      return (
+        <Card>
+          <p className="font-medium text-ink mb-1">Thanks — that's saved.</p>
+          <p className="text-sm text-ink-muted mb-4">
+            Samara will see that you completed this either way. Want her to
+            see your actual answers too, or keep those just for yourself?
+          </p>
+          <div className="flex gap-2">
+            <Button size="sm" onClick={() => handleShareChoice(true)} disabled={isPending}>
+              Share my answers
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => handleShareChoice(false)}
+              disabled={isPending}
+            >
+              Keep answers private
+            </Button>
+          </div>
+        </Card>
+      );
+    }
+
     return (
       <Card>
-        <p className="font-medium text-ink mb-1">Thanks — that's saved.</p>
-        <p className="text-sm text-ink-muted">Samara will see your response.</p>
+        <p className="font-medium text-ink mb-1">Got it.</p>
+        <p className="text-sm text-ink-muted">Thanks for letting me know.</p>
       </Card>
     );
   }

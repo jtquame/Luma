@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { TemplateBuilder } from "./template-builder";
 import { TemplateRow } from "./template-row";
-import { CheckInPresetLibrary } from "./checkin-preset-library";
+import { CheckInPresetLibrary, type CustomLibraryItem } from "./checkin-preset-library";
 import { Button } from "@/components/ui/button";
 import { Plus, Library } from "lucide-react";
 
@@ -15,14 +15,24 @@ interface TemplateSummary {
   is_active: boolean;
   questionCount: number;
   responseCount: number;
+  assignedClientIds?: string[];
+}
+
+interface ClientOption {
+  id: string;
+  name: string;
 }
 
 export function PromptsManager({
   checkIns,
   prompts,
+  clients,
+  libraryItems,
 }: {
   checkIns: TemplateSummary[];
   prompts: TemplateSummary[];
+  clients: ClientOption[];
+  libraryItems: CustomLibraryItem[];
 }) {
   const [showBuilder, setShowBuilder] = useState(false);
   const [showLibrary, setShowLibrary] = useState(false);
@@ -56,7 +66,9 @@ export function PromptsManager({
         </div>
       </div>
 
-      {showLibrary && <CheckInPresetLibrary onDone={() => setShowLibrary(false)} />}
+      {showLibrary && (
+        <CheckInPresetLibrary onDone={() => setShowLibrary(false)} customItems={libraryItems} />
+      )}
       {showBuilder && <TemplateBuilder onDone={handleDone} />}
 
       <div className="mb-8">
@@ -74,6 +86,9 @@ export function PromptsManager({
                 isActive={t.is_active}
                 questionCount={t.questionCount}
                 responseCount={t.responseCount}
+                kind="check_in"
+                clients={clients}
+                assignedClientIds={t.assignedClientIds}
               />
             ))}
           </div>
@@ -95,6 +110,7 @@ export function PromptsManager({
                 isActive={t.is_active}
                 questionCount={t.questionCount}
                 responseCount={t.responseCount}
+                kind="prompt"
               />
             ))}
           </div>
