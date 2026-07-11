@@ -12,7 +12,8 @@ import { Menu, X } from "lucide-react";
 // Announcements are placed alongside their closest relatives.
 const NAV = [
   { href: "/home", label: "Home" },
-  { href: "/skill-building", label: "Skill building" },
+  { href: "/skill-building", label: "Skill Building" },
+  { href: "/reflections", label: "Reflections" },
   { href: "/check-in", label: "Check-in" },
   { href: "/webinars", label: "Webinars" },
   { href: "/support-groups", label: "Support groups" },

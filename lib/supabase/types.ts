@@ -389,6 +389,100 @@ export interface Database {
         };
         Update: { frequency: CheckInFrequency };
       };
+      pathways: {
+        Row: {
+          id: string;
+          title: string;
+          category: string;
+          description: string | null;
+          cover_image_url: string | null;
+          is_active: boolean;
+          created_by: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          title: string;
+          category: string;
+          description?: string | null;
+          cover_image_url?: string | null;
+          is_active?: boolean;
+          created_by: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["pathways"]["Insert"]>;
+      };
+      pathway_steps: {
+        Row: {
+          id: string;
+          pathway_id: string;
+          position: number;
+          title: string;
+          content: string;
+          reflection_prompt: string | null;
+          reflection_max_length: number | null;
+          created_at: string;
+        };
+        Insert: {
+          pathway_id: string;
+          position: number;
+          title: string;
+          content: string;
+          reflection_prompt?: string | null;
+          reflection_max_length?: number | null;
+        };
+        Update: never;
+      };
+      pathway_enrollments: {
+        Row: {
+          client_id: string;
+          pathway_id: string;
+          started_at: string;
+          completed_at: string | null;
+        };
+        Insert: { client_id: string; pathway_id: string };
+        Update: { completed_at?: string | null };
+      };
+      pathway_step_completions: {
+        Row: {
+          id: string;
+          client_id: string;
+          step_id: string;
+          reflection_response: string | null;
+          completed_at: string;
+        };
+        Insert: {
+          client_id: string;
+          step_id: string;
+          reflection_response?: string | null;
+        };
+        Update: never;
+      };
+      assignment_templates: {
+        Row: {
+          id: string;
+          title: string;
+          instructions: string;
+          reflection_prompt: string | null;
+          reflection_max_length: number | null;
+          attachment_url: string | null;
+          attachment_name: string | null;
+          attachment_type: string | null;
+          created_by: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          title: string;
+          instructions: string;
+          reflection_prompt?: string | null;
+          reflection_max_length?: number | null;
+          attachment_url?: string | null;
+          attachment_name?: string | null;
+          attachment_type?: string | null;
+          created_by: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["assignment_templates"]["Insert"]>;
+      };
       terms_content: {
         Row: { id: true; version: number; body: string; updated_at: string };
         Insert: { body?: string };

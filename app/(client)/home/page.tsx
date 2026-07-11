@@ -109,7 +109,7 @@ export default async function ClientHomePage() {
           </Card>
         </Link>
 
-        <Link href="/skill-building">
+        <Link href="/reflections">
           <Card className="hover:border-primary/40 transition-colors h-full">
             <p className="eyebrow mb-2">What's assigned</p>
             {!pendingAssignments || pendingAssignments.length === 0 ? (

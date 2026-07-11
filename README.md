@@ -164,8 +164,39 @@ changes from Samara's feedback:
 
 Migrations added this round: `0010_assignments.sql`,
 `0011_checkin_cadence.sql`, `0012_terms.sql`, `0013_image_storage.sql`,
-`0014_attachments_and_preferences.sql` — run these after `0009` in order,
-same as before.
+`0014_attachments_and_preferences.sql`, `0015_pathways.sql`,
+`0016_assignment_library.sql` — run these after `0009` in order, same as
+before.
+
+## Skill Building vs. Reflections (split)
+
+These used to be one combined section; they're now two separate things:
+
+- **Reflections** (`/reflections` client, `/dashboard/reflections`
+  therapist) — what used to be called "assignments": per-client homework
+  Samara assigns directly, each with instructions, an optional attachment,
+  and an optional capped-length reflection question.
+- **Skill Building** (`/skill-building` client, `/dashboard/skill-building`
+  therapist) — brand new: self-serve, topic-based **pathways** (e.g.
+  "Coping with a Breakup," "Managing Anxiety"), modeled on a Bible-app
+  reading-plan pattern. A client browses the library by category and
+  starts whichever pathway they want; steps unlock **sequentially** —
+  step 2 isn't visible/answerable until step 1 is marked complete. This
+  was genuinely ambiguous from the original request, so I confirmed the
+  two open questions (self-serve vs. therapist-assigned, sequential vs.
+  free access) before building — went with self-serve + sequential, which
+  is the closest match to the Bible-app reference. Easy to flip either
+  behavior if that's not actually what's wanted.
+
+## Assignment library (the "folder")
+
+`/dashboard/reflections` now has a collapsible "Assignment library" panel
+where Samara can pre-save reusable assignment content (title,
+instructions, reflection question, attachment) once. When creating an
+actual per-client assignment, typing a title that matches a saved one
+(there's autocomplete via a native datalist) auto-fills the rest of the
+form instead of retyping it — that's the "types the name and it
+automatically uploads" behavior.
 
 ## Image uploads
 
@@ -208,4 +239,6 @@ Two additions on top of the therapist-set default cadence:
   entirely), flag it and it can be adjusted.
 
 Not yet done: response CSV/PDF export, printable support-group calendar,
-and a full WCAG contrast/keyboard-nav audit.
+a full WCAG contrast/keyboard-nav audit, and editing an existing pathway
+after creation (currently create/archive/delete only, no edit — same
+pattern as check-in templates).

@@ -46,7 +46,7 @@ export default async function PromptsPage() {
 
   return (
     <div>
-      <h1 className="font-display text-2xl mb-1">Check-ins & prompts</h1>
+      <h1 className="font-display text-2xl mb-1">Check-ins & Prompts</h1>
       <p className="text-sm text-ink-muted mb-8">
         Build the structured questions your clients respond to.
       </p>

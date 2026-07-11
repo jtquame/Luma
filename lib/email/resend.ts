@@ -66,7 +66,7 @@ export async function sendAssignmentEmail({
   title: string;
 }) {
   const resend = getResendClient();
-  const link = `${process.env.NEXT_PUBLIC_SITE_URL}/skill-building`;
+  const link = `${process.env.NEXT_PUBLIC_SITE_URL}/reflections`;
 
   await resend.emails.send({
     from: FROM,

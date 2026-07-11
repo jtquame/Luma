@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Input, Label, FieldError } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FileUploader, type UploadedFile } from "./file-uploader";
+import { AssignmentLibraryManager, type LibraryTemplate } from "./assignment-library-manager";
 import { Plus, Trash2, X } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
@@ -24,7 +25,15 @@ interface Assignment {
   createdAt: string;
 }
 
-function AssignmentForm({ clients, onDone }: { clients: ClientOption[]; onDone: () => void }) {
+function AssignmentForm({
+  clients,
+  libraryTemplates,
+  onDone,
+}: {
+  clients: ClientOption[];
+  libraryTemplates: LibraryTemplate[];
+  onDone: () => void;
+}) {
   const router = useRouter();
   const [clientId, setClientId] = useState(clients[0]?.id ?? "");
   const [title, setTitle] = useState("");
@@ -32,8 +41,29 @@ function AssignmentForm({ clients, onDone }: { clients: ClientOption[]; onDone: 
   const [reflectionPrompt, setReflectionPrompt] = useState("");
   const [reflectionMaxLength, setReflectionMaxLength] = useState("300");
   const [attachment, setAttachment] = useState<UploadedFile | null>(null);
+  const [filledFromLibrary, setFilledFromLibrary] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  function handleTitleChange(value: string) {
+    setTitle(value);
+    const match = libraryTemplates.find((t) => t.title.toLowerCase() === value.trim().toLowerCase());
+    if (match) {
+      setInstructions(match.instructions);
+      setReflectionPrompt(match.reflection_prompt ?? "");
+      setReflectionMaxLength(String(match.reflection_max_length ?? 300));
+      if (match.attachment_url && match.attachment_name) {
+        setAttachment({
+          url: match.attachment_url,
+          name: match.attachment_name,
+          type: (match.attachment_type as "image" | "document") ?? "document",
+        });
+      }
+      setFilledFromLibrary(true);
+    } else {
+      setFilledFromLibrary(false);
+    }
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -66,7 +96,7 @@ function AssignmentForm({ clients, onDone }: { clients: ClientOption[]; onDone: 
     return (
       <Card className="mb-6">
         <p className="text-sm text-ink-muted">
-          Invite at least one client before assigning skill-building homework.
+          Invite at least one client before assigning a reflection.
         </p>
       </Card>
     );
@@ -101,9 +131,19 @@ function AssignmentForm({ clients, onDone }: { clients: ClientOption[]; onDone: 
           <Input
             id="atitle"
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={(e) => handleTitleChange(e.target.value)}
             placeholder="Practice grounding technique"
+            list="assignment-library-titles"
+            autoComplete="off"
           />
+          <datalist id="assignment-library-titles">
+            {libraryTemplates.map((t) => (
+              <option key={t.id} value={t.title} />
+            ))}
+          </datalist>
+          {filledFromLibrary && (
+            <p className="mt-1.5 text-xs text-primary">Filled in from your library.</p>
+          )}
         </div>
         <div>
           <Label htmlFor="instructions">Instructions</Label>
@@ -157,15 +197,19 @@ function AssignmentForm({ clients, onDone }: { clients: ClientOption[]; onDone: 
 export function AssignmentManager({
   clients,
   assignments,
+  libraryTemplates,
 }: {
   clients: ClientOption[];
   assignments: Assignment[];
+  libraryTemplates: LibraryTemplate[];
 }) {
   const [showForm, setShowForm] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   return (
     <div>
+      <AssignmentLibraryManager templates={libraryTemplates} />
+
       <div className="flex justify-end mb-6">
         {!showForm && (
           <Button onClick={() => setShowForm(true)}>
@@ -173,7 +217,13 @@ export function AssignmentManager({
           </Button>
         )}
       </div>
-      {showForm && <AssignmentForm clients={clients} onDone={() => setShowForm(false)} />}
+      {showForm && (
+        <AssignmentForm
+          clients={clients}
+          libraryTemplates={libraryTemplates}
+          onDone={() => setShowForm(false)}
+        />
+      )}
 
       {assignments.length === 0 ? (
         <p className="text-sm text-ink-muted">No assignments yet.</p>

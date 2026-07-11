@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { completeAssignment } from "@/app/(client)/skill-building-actions";
+import { completeAssignment } from "@/app/(client)/reflections-actions";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileText, Image as ImageIcon, Download } from "lucide-react";
