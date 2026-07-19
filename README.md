@@ -167,7 +167,7 @@ Migrations added this round: `0010_assignments.sql`,
 `0014_attachments_and_preferences.sql`, `0015_pathways.sql`,
 `0016_assignment_library.sql`, `0017_checkin_library.sql`,
 `0018_client_checkin_model.sql`, `0019_split_response_visibility.sql`,
-`0020_deletable_templates.sql` —
+`0020_deletable_templates.sql`, `0021_webinar_price.sql` —
 run these after `0009` in order, same as before.
 
 ## Skill Building vs. Reflections (split)
@@ -306,3 +306,26 @@ moment any client had responded to it. Two changes fixed that:
   refusing to let Samara delete it.
 
 Migration `0020_deletable_templates.sql`.
+
+## Selling webinar tickets (external ticketing, not built-in payments)
+
+The app doesn't process payments itself — no Stripe integration, no
+checkout flow. Instead, webinars link out cleanly to whatever external
+ticketing tool Samara uses (Eventbrite, a Stripe Payment Link, etc.):
+
+- Each webinar has an optional **price** (free text — "$25", "Free",
+  "Sliding scale", whatever fits) and a **registration/ticket link**.
+  Neither field existed in the actual webinar form before this pass
+  (`registration_url` was in the schema but nothing collected it) — that's
+  fixed now, along with adding `price`. Migration `0021_webinar_price.sql`.
+- On the client side, the price shows as a badge and "Get tickets" opens
+  the external link in a new tab, with a line noting tickets are handled
+  outside the app.
+- If a webinar has **both** a registration link and a video URL (e.g. a
+  recorded session only meant for people who already paid), both buttons
+  now show side by side — previously the video URL silently hid the
+  registration link entirely, which would have broken any paid+recorded
+  webinar. The app has no way to verify someone actually paid before
+  showing the video link, though — that's on Samara to manage (e.g. by
+  only sharing the video URL with people after she confirms payment, or
+  running truly public/free content through the video field alone).

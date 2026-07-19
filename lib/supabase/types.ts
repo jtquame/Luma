@@ -280,6 +280,7 @@ export interface Database {
           worksheet_url: string | null;
           scheduled_at: string | null;
           registration_url: string | null;
+          price: string | null;
           created_by: string;
           created_at: string;
           updated_at: string;
@@ -295,6 +296,7 @@ export interface Database {
           worksheet_url?: string | null;
           scheduled_at?: string | null;
           registration_url?: string | null;
+          price?: string | null;
           created_by: string;
         };
         Update: Partial<Database["public"]["Tables"]["webinars"]["Insert"]>;

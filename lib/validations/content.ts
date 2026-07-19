@@ -25,6 +25,7 @@ export const webinarSchema = z.object({
   worksheetUrl: optionalUrl,
   scheduledAt: z.string().optional(),
   registrationUrl: optionalUrl,
+  price: z.string().trim().max(40).optional(),
 });
 export type WebinarInput = z.infer<typeof webinarSchema>;
 

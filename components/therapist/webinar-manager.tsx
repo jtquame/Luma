@@ -20,6 +20,8 @@ interface Webinar {
   description?: string | null;
   video_url?: string | null;
   thumbnail_url?: string | null;
+  registration_url?: string | null;
+  price?: string | null;
 }
 
 function toLocalInputValue(iso: string | null | undefined) {
@@ -46,6 +48,8 @@ function WebinarForm({
   const [lengthMinutes, setLengthMinutes] = useState(
     existingWebinar?.length_minutes ? String(existingWebinar.length_minutes) : ""
   );
+  const [registrationUrl, setRegistrationUrl] = useState(existingWebinar?.registration_url ?? "");
+  const [price, setPrice] = useState(existingWebinar?.price ?? "");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -60,6 +64,8 @@ function WebinarForm({
       thumbnailUrl,
       scheduledAt,
       lengthMinutes: lengthMinutes ? Number(lengthMinutes) : undefined,
+      registrationUrl,
+      price,
     });
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? "Check the form");
@@ -108,7 +114,43 @@ function WebinarForm({
         <div>
           <Label htmlFor="video">Video URL</Label>
           <Input id="video" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} />
+          <p className="text-xs text-ink-muted mt-1">
+            For a free or already-purchased webinar clients can watch directly.
+          </p>
         </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <Label htmlFor="price">Price (optional)</Label>
+            <Input
+              id="price"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              placeholder="$25, Free, Sliding scale…"
+            />
+          </div>
+          <div>
+            <Label htmlFor="registration">Ticket / registration link</Label>
+            <Input
+              id="registration"
+              value={registrationUrl}
+              onChange={(e) => setRegistrationUrl(e.target.value)}
+              placeholder="Eventbrite or Stripe Payment Link URL"
+            />
+          </div>
+        </div>
+        <p className="text-xs text-ink-muted -mt-2">
+          Ticketing and payment happen outside the app — each webinar needs
+          its own Eventbrite or Stripe Payment Link, since neither tool
+          supports one link covering multiple events. Tip: if several
+          webinars are the same price, you can create one reusable "$25
+          Webinar Ticket" Payment Link in Stripe and paste that same URL
+          here each time — faster, though you'd track who bought which
+          session yourself (e.g. by the email they used at checkout) since
+          Stripe won't distinguish between webinars on a shared link. Add
+          both a price and a video link if the video is only for people
+          who've already paid; the video stays private to whoever you send
+          the link to.
+        </p>
         <ImageUploader
           label="Thumbnail image"
           value={thumbnailUrl}
@@ -181,6 +223,7 @@ export function WebinarManager({ webinars }: { webinars: Webinar[] }) {
                   {w.scheduled_at &&
                     ` · ${format(new Date(w.scheduled_at), "MMM d, yyyy 'at' h:mm a")}`}
                   {w.length_minutes && ` · ${w.length_minutes} min`}
+                  {w.price && ` · ${w.price}`}
                 </p>
               </div>
               <div className="flex gap-2 flex-wrap">

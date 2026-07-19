@@ -72,6 +72,7 @@ export async function createWebinar(input: WebinarInput): Promise<ActionResult> 
     worksheet_url: parsed.data.worksheetUrl || null,
     scheduled_at: parsed.data.scheduledAt || null,
     registration_url: parsed.data.registrationUrl || null,
+    price: parsed.data.price || null,
     created_by: user.id,
   });
 
@@ -101,6 +102,7 @@ export async function updateWebinar(id: string, input: WebinarInput): Promise<Ac
       worksheet_url: parsed.data.worksheetUrl || null,
       scheduled_at: parsed.data.scheduledAt || null,
       registration_url: parsed.data.registrationUrl || null,
+    price: parsed.data.price || null,
     })
     .eq("id", id);
 
