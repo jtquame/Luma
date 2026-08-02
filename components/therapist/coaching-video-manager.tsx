@@ -12,6 +12,7 @@ import { Card } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ImageUploader } from "./image-uploader";
+import { VideoUploader, type UploadedVideo } from "./video-uploader";
 import { Plus, Trash2, X, Eye, Users } from "lucide-react";
 
 interface Video {
@@ -28,7 +29,9 @@ function VideoForm({ onDone, existingVideo }: { onDone: () => void; existingVide
   const router = useRouter();
   const [title, setTitle] = useState(existingVideo?.title ?? "");
   const [description, setDescription] = useState(existingVideo?.description ?? "");
-  const [videoUrl, setVideoUrl] = useState(existingVideo?.video_url ?? "");
+  const [video, setVideo] = useState<UploadedVideo | null>(
+    existingVideo ? { url: existingVideo.video_url, name: existingVideo.title } : null
+  );
   const [thumbnailUrl, setThumbnailUrl] = useState(existingVideo?.thumbnail_url ?? "");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -36,10 +39,16 @@ function VideoForm({ onDone, existingVideo }: { onDone: () => void; existingVide
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+
+    if (!video) {
+      setError("Upload a video file first.");
+      return;
+    }
+
     const parsed = coachingVideoSchema.safeParse({
       title,
       description,
-      videoUrl,
+      videoUrl: video.url,
       thumbnailUrl,
     });
     if (!parsed.success) {
@@ -71,15 +80,7 @@ function VideoForm({ onDone, existingVideo }: { onDone: () => void; existingVide
           <Label htmlFor="vtitle">Title</Label>
           <Input id="vtitle" value={title} onChange={(e) => setTitle(e.target.value)} />
         </div>
-        <div>
-          <Label htmlFor="vurl">Video URL</Label>
-          <Input
-            id="vurl"
-            value={videoUrl}
-            onChange={(e) => setVideoUrl(e.target.value)}
-            placeholder="YouTube, Vimeo, or any hosted video link"
-          />
-        </div>
+        <VideoUploader label="Video file" value={video} onChange={setVideo} />
         <ImageUploader
           label="Thumbnail (optional)"
           value={thumbnailUrl}
