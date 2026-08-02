@@ -16,6 +16,7 @@ const NAV = [
   { href: "/reflections", label: "Reflections" },
   { href: "/check-in", label: "Check-in" },
   { href: "/webinars", label: "Webinars" },
+  { href: "/coaching-videos", label: "Coaching Videos" },
   { href: "/support-groups", label: "Support groups" },
   { href: "/announcements", label: "Announcements" },
   { href: "/books", label: "Books" },
